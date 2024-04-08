@@ -112,10 +112,10 @@ func (s *SysDb) PullWriteUserPosition(dbHandle *bolt.DB, userName, channelName, 
 	return nil
 }
 
-// PullGetChannelPosition 获取频道当前位置和起始位置
+// PullGetChannelPositionNow 获取频道当前位置
 // 直接从boltdb里读取频道最新数据位置
 // 场景: 用户消费数据时，指定了从最新位置读取时，将调用次函数
-func (s *SysDb) PullGetChannelPosition(dbHandle *bolt.DB, channelName string) (retBucketName, retBucketKey string, retErr error) {
+func (s *SysDb) PullGetChannelPositionNow(dbHandle *bolt.DB, channelName string) (retBucketName, retBucketKey string, retErr error) {
 	// 读取
 	if err := dbHandle.View(func(tx *bolt.Tx) error {
 		// 状态桶里查询数据桶状态
@@ -126,9 +126,9 @@ func (s *SysDb) PullGetChannelPosition(dbHandle *bolt.DB, channelName string) (r
 		} else {
 			c := b.Cursor()
 			if k, v := c.Seek([]byte(channelName)); k == nil {
-				retErr = errors.New("sys.db里的channelPosition bucket里不存在" + channelName)
-				log.Error(retErr)
-				return nil
+				log.Info("sys.db里的channelPosition bucket里不存在" + channelName)
+				retBucketName = "0"
+				retBucketKey = "0"
 			} else {
 				if d, err := json_v1.JsonDecode(string(v)); err != nil {
 					retErr = err
@@ -138,6 +138,35 @@ func (s *SysDb) PullGetChannelPosition(dbHandle *bolt.DB, channelName string) (r
 					retBucketName, _ = json_v1.GetJsonString(d, "bucketName")
 					retBucketKey, _ = json_v1.GetJsonString(d, "bucketKey")
 				}
+			}
+		}
+		return nil
+	}); err != nil {
+		retErr = err
+		log.Error(err)
+	}
+	return
+}
+
+// PullGetChannelPositionAll 获取频道最老位置
+// 直接从boltdb里读取频道最老位置
+// 场景: 用户消费数据时，指定了从最老位置读取时
+func (s *SysDb) PullGetChannelPositionAll(dbHandle *bolt.DB, channelName string) (retBucketName, retBucketKey string, retErr error) {
+	// 读取
+	if err := dbHandle.View(func(tx *bolt.Tx) error {
+		// 状态桶里查询数据桶状态
+		if b := tx.Bucket([]byte("channelBuckets-" + channelName)); b == nil {
+			retErr = errors.New("sys.db里不存在 channelBuckets-" + channelName)
+			log.Error(retErr)
+			return nil
+		} else {
+			c := b.Cursor()
+			if k, _ := c.First(); k != nil {
+				retBucketName = string(k)
+				retBucketKey = "0"
+			} else {
+				retBucketName = "0"
+				retBucketKey = "0"
 			}
 		}
 		return nil

@@ -19,14 +19,18 @@ func main() {
 	} else {
 		// 2、发送数据拉取请求
 		if err := c.Pull(&protoMq.ReqPullData{
-			User:   "zhou",
-			Ch:     "abc",
-			BKType: true,
-			BKName: "",
-			BKKey:  "",
+			User: "zhou",
+			Ch:   "abc",
+			//BKType: protoMq.BKType_RemoteDefaultAll,
+			BKType: protoMq.BKType_UserSet,
+			BKName: "0",
+			BKKey:  "0",
 		}, func(res *protoMq.ResPullData) {
 			// 3、处理收到的数据
-			fmt.Println(res.BKName, res.BKKey, string(res.Data))
+			if res.ErrNum != 0 {
+				log.Error(res)
+			}
+			fmt.Println(string(res.Data), res.BKName, res.BKKey)
 		}); err != nil {
 			log.Panic(err)
 		}

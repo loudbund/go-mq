@@ -3,11 +3,17 @@ syntax = "proto3" ;
 
 option go_package = "./;protoMq" ;
 
+enum DataType {        // 数据说明
+  DataOnly = 0 ;       // 仅数据
+  DataEnd  = 1 ;       // 数据和结束符
+  EndOnly  = 2 ;       // 仅结束符
+}
+
 // 推送数据参数
 message ReqPushData{
-  bool   WaitRes = 1 ; // 等待服务器响应
-  string Ch      = 2 ; // 频道
-  bytes  Data    = 3 ; // 数据内容
+  DataType DataType = 1 ; // 数据说明
+  string Ch      = 2 ;     // 频道
+  bytes  Data    = 3 ;     // 数据内容
 }
 
 // 推送数据返回
@@ -15,11 +21,18 @@ message ResPushData{
   int32  ErrNum = 1 ; // 错误编号，0为正常
 }
 
+enum   BKType  {     // bucket参数类型
+  RemoteSaved      = 0 ;      // 使用远端位置，没有则报错
+  RemoteDefaultNow = 1 ;      // 使用远端位置,没有则使用当前位置
+  RemoteDefaultAll = 2 ;      // 使用远端位置,没有读取出所有的
+  UserSet          = 3 ;      // 使用指定位置
+}
+
 // 拉取数据参数
 message ReqPullData{
   string User    = 1 ; // 用户
   string Ch      = 2 ; // 频道
-  bool   BKType  = 3 ; // bucket参数类型 false:使用远端存储的位置 true:使用传递的参数
+  BKType BKType  = 3 ; // bucket参数类型
   string BKName  = 4 ; // bucket name
   string BKKey   = 5 ; // bucket key
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/loudbund/go-mq/client"
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
@@ -19,6 +20,9 @@ func main() {
 	} else {
 		// 2、建立数据推送通道
 		if putRes, err := c.HandlePush(func(channel string, successData []byte, ErrNum int) {
+			if ErrNum != 0 {
+				log.Error(fmt.Sprintf("ErrNum:%d\n", ErrNum))
+			}
 			// 3、在此处理回调消息
 			// fmt.Println("success Data", ErrNum)
 		}); err != nil {

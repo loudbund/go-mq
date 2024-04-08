@@ -58,9 +58,14 @@ func (s *server) PushData(cliStr protoMq.Mq_PushDataServer) error {
 					}
 					return err
 				}
+				// 1、仅结束标记
+				if item.DataType == protoMq.DataType_EndOnly {
+					break
+				}
 				// 缓存数据
 				Data = append(Data, item.Data)
-				if item.WaitRes {
+				// 2、数据和结束标记
+				if item.DataType == protoMq.DataType_DataEnd {
 					//fmt.Println("rev WaitRes")
 					break
 				}
@@ -113,17 +118,62 @@ func (s *server) PushData(cliStr protoMq.Mq_PushDataServer) error {
 // 20: 读取数据失败
 func (s *server) PullData(req *protoMq.ReqPullData, cliStr protoMq.Mq_PullDataServer) error {
 	fmt.Println(utils_v1.Time().DateTime(), "welcome to pull data ")
-	// 位置参数处理, false:使用远端存储的位置 true:使用传递的参数
-	if req.BKType {
+	// 位置参数处理
+	if req.BKType == protoMq.BKType_UserSet { // 使用用户传递的
 		if err := (&Controller{}).PullSetChannelPosition(req.User, req.Ch, req.BKName, req.BKKey); err != nil {
-			if err := cliStr.Send(&protoMq.ResPullData{
-				ErrNum: 10,
-				Data:   []byte(err.Error()),
-				BKName: "",
-				BKKey:  "",
-			}); err != nil {
+			if err := s.pullSend(cliStr, 10, "", "", []byte(err.Error())); err != nil {
 				log.Println("break, err :", err)
+			}
+			return err
+		}
+	} else if req.BKType == protoMq.BKType_RemoteSaved { // 使用远端存储的,远端没有位置则报错
+		if bucketName, _, err := (&Controller{}).PullGetUserChannelPosition(req.User, req.Ch); err != nil {
+			log.Error(err)
+			return err
+		} else if bucketName == "" {
+			if err := s.pullSend(cliStr, 11, "", "", []byte(err.Error())); err != nil {
+				log.Println("break, err :", err)
+			}
+			return errors.New("未检索到用户已拉取的位置")
+		}
+	} else if req.BKType == protoMq.BKType_RemoteDefaultAll { // 使用远端存储的,远端没有位置则取远端存量全部的
+		if bucketName, _, err := (&Controller{}).PullGetUserChannelPosition(req.User, req.Ch); err != nil {
+			log.Error(err)
+			return err
+		} else if bucketName == "" {
+			if bucketName, bucketKey, err := (&Controller{}).PullGetChannelPositionAll(req.Ch); err != nil {
+				log.Error(err)
+				if err := s.pullSend(cliStr, 12, "", "", []byte(err.Error())); err != nil {
+					log.Println("break, err :", err)
+				}
 				return err
+			} else {
+				if err := (&Controller{}).PullSetChannelPosition(req.User, req.Ch, bucketName, bucketKey); err != nil {
+					if err := s.pullSend(cliStr, 13, "", "", []byte(err.Error())); err != nil {
+						log.Println("break, err :", err)
+					}
+					return err
+				}
+			}
+		}
+	} else if req.BKType == protoMq.BKType_RemoteDefaultNow { // 使用远端存储的,远端没有位置则取当前的
+		if bucketName, _, err := (&Controller{}).PullGetUserChannelPosition(req.User, req.Ch); err != nil {
+			log.Error(err)
+			return err
+		} else if bucketName == "" {
+			if bucketName, bucketKey, err := (&Controller{}).PullGetChannelPositionNow(req.Ch); err != nil {
+				log.Error(err)
+				if err := s.pullSend(cliStr, 14, "", "", []byte(err.Error())); err != nil {
+					log.Println("break, err :", err)
+				}
+				return err
+			} else {
+				if err := (&Controller{}).PullSetChannelPosition(req.User, req.Ch, bucketName, bucketKey); err != nil {
+					if err := s.pullSend(cliStr, 15, "", "", []byte(err.Error())); err != nil {
+						log.Println("break, err :", err)
+					}
+					return err
+				}
 			}
 		}
 	}
@@ -133,12 +183,7 @@ func (s *server) PullData(req *protoMq.ReqPullData, cliStr protoMq.Mq_PullDataSe
 		lastBucketName, lastBucketKey := "", ""
 		if Data, retBucketName, retBucketKey, err := (&Controller{}).PullGetData(req.User, req.Ch); err != nil {
 			log.Error(err)
-			if err := cliStr.Send(&protoMq.ResPullData{
-				ErrNum: 20,
-				Data:   []byte(err.Error()),
-				BKName: "",
-				BKKey:  "",
-			}); err != nil {
+			if err := s.pullSend(cliStr, 50, "", "", []byte(err.Error())); err != nil {
 				log.Error(err)
 				return err
 			}
@@ -153,12 +198,7 @@ func (s *server) PullData(req *protoMq.ReqPullData, cliStr protoMq.Mq_PullDataSe
 				//log.Info(111, BkName, BkKey, v)
 
 				// 发送数据
-				if err := cliStr.Send(&protoMq.ResPullData{
-					ErrNum: 0,
-					Data:   []byte(v),
-					BKName: BkName,
-					BKKey:  BkKey,
-				}); err != nil {
+				if err := s.pullSend(cliStr, 0, BkName, BkKey, []byte(v)); err != nil {
 					log.Println("break, err :", err)
 					return err
 				}
@@ -171,7 +211,20 @@ func (s *server) PullData(req *protoMq.ReqPullData, cliStr protoMq.Mq_PullDataSe
 				}
 				lastBucketName, lastBucketKey = retBucketName, retBucketKey
 			}
+			// 如果没有数据，则延时1秒
+			if len(Data) == 0 {
+				time.Sleep(1 * time.Second)
+			}
 		}
-		time.Sleep(1 * time.Second)
 	}
+}
+
+// 保存位置
+func (s *server) pullSend(cliStr protoMq.Mq_PullDataServer, errNum int32, BKName, BKKey string, Data []byte) error {
+	return cliStr.Send(&protoMq.ResPullData{
+		ErrNum: errNum,
+		Data:   Data,
+		BKName: BKName,
+		BKKey:  BKKey,
+	})
 }

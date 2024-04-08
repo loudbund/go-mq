@@ -30,12 +30,7 @@ func (c *ChannelDb) Init(channelName string) {
 
 // PushGetChannelPosition 计算将要写入channel的bucket和位置
 // 获取频道最新数据的位置信息
-func (c *ChannelDb) PushGetChannelPosition(dbHandle *bolt.DB, channelName string) (retBucketName string, retNextBucketKey int64, retErr error) {
-	if !utils_v1.File().CheckFileExist(CfgBoltDb.DbFolder + "/" + CfgBoltDb.PreChannelDb + channelName + ".db") {
-		retErr = errors.New("频道数据库不存在")
-		return
-	}
-
+func (c *ChannelDb) PushGetChannelPosition(dbHandle *bolt.DB) (retBucketName string, retNextBucketKey int64, retErr error) {
 	// 读取
 	if err := dbHandle.Update(func(tx *bolt.Tx) error {
 		retBucketName = (&BNHelper{}).GetBucketName()
@@ -81,7 +76,7 @@ func (c *ChannelDb) PushWrite(channelName string, data [][]byte) (retErr error) 
 
 	// 获取bucketName和bucketKey位置
 	bucketName, nextBucketKey := "", int64(0)
-	if bucketName, nextBucketKey, err = c.PushGetChannelPosition(dbHandle, channelName); err != nil {
+	if bucketName, nextBucketKey, err = c.PushGetChannelPosition(dbHandle); err != nil {
 		log.Error(err)
 		return err
 	}
