@@ -25,12 +25,13 @@ func main() {
 			BKType: protoMq.BKType_UserSet,
 			BKName: "0",
 			BKKey:  "0",
-		}, func(res *protoMq.ResPullData) {
+		}, func(res *protoMq.ResPullData) bool {
 			// 3、处理收到的数据
 			if res.ErrNum != 0 {
 				log.Error(res)
 			}
 			fmt.Println(string(res.Data), res.BKName, res.BKKey)
+			return true
 		}); err != nil {
 			log.Panic(err)
 		}

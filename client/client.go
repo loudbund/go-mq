@@ -100,14 +100,17 @@ func (c *client) HandlePush(backSuccessOne func(string, []byte, int)) (*pushClie
 }
 
 // Pull 数据拉取
-func (c *client) Pull(reqData *protoMq.ReqPullData, dataEvent func(res *protoMq.ResPullData)) error {
+func (c *client) Pull(reqData *protoMq.ReqPullData, dataEvent func(res *protoMq.ResPullData) bool) error {
 	stream, _ := c.Client.PullData(context.Background(), reqData)
 	for {
 		if res, err := stream.Recv(); err != nil {
 			log.Error(err)
 			return err
 		} else {
-			dataEvent(res)
+			// 不继续接收则返回的是false，true则继续接收
+			if !dataEvent(res) {
+				return nil
+			}
 		}
 	}
 }
