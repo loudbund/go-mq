@@ -5,6 +5,13 @@
 - 2、消息生产者推送消息给服务，参见client-example/push
 - 3、消息消费者推送消息给服务，参见client-example/pull
 
+## 特点
+- 1、golang语言开发，占用系统资源极少
+- 2、使用boltdb存储队列数据，数据持久化存储
+- 3、数据保留时间可配置，配置变量HourDataRetain
+- 4、提供了数据生成者和消费者的golang语言版本的sdk
+- 5、消费数据时队列为空时，将延时1s，所以即便在无数据堆积情况下，也可能最长延时1s
+
 ## bolt库说明
 - 1、库sys.db
   - bucket:  userChannelPosition             【用户拉取数据当前频道拉取位置】
