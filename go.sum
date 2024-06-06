@@ -1435,6 +1435,8 @@ github.com/larspensjo/config v0.0.0-20160228172812-b6db95dc6321 h1:HuvFF+bNfti7Q
 github.com/larspensjo/config v0.0.0-20160228172812-b6db95dc6321/go.mod h1:2tvhHYSOp38Gz/nhlXdCBepDFHG1/GCI0nuk4Dv9EyM=
 github.com/loudbund/go-json v1.0.1 h1:LnRpjLvCS5H/1WXLVz4NX9ae5+OGgqG/apPSoYvD7Q4=
 github.com/loudbund/go-json v1.0.1/go.mod h1:szBBt6hUNf4Cxo6HoVEbN17znTEmD0Wgma2kQs6SiOE=
+github.com/loudbund/go-progress v1.0.0 h1:K1fAlRTBVxeLZ5ULSNMwuut71O+bl3HzeYdOFmRt2pM=
+github.com/loudbund/go-progress v1.0.0/go.mod h1:b/pJOdK43DTQ7WWhe1FtnLkcuTlEDocakYdOH4RaamQ=
 github.com/loudbund/go-utils v1.0.9 h1:RTg+28n34eE1mjyVspk8t5+3hV6K/RudGS+2YXGYT1k=
 github.com/loudbund/go-utils v1.0.9/go.mod h1:zWk53IYDd78rCDNrku6p2Jj3FrjANTCSAJAL1rF4LhA=
 github.com/lyft/protoc-gen-star v0.6.0/go.mod h1:TGAoBVkt8w7MPG72TrKIu85MIdXwDuzJYeZuUPFPNwA=
