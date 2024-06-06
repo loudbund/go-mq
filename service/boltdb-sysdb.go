@@ -60,8 +60,9 @@ func (s *SysDb) PullGetUserPosition(dbHandle *bolt.DB, userName, channelName str
 		} else {
 			c := bucketPosition.Cursor()
 			if k, v := c.Seek([]byte(userName + "-" + channelName)); k == nil {
-				retErr = errors.New("sys.db里的userChannelPosition bucket里不存在" + userName + "-" + channelName)
-				log.Error(retErr)
+				log.Info("sys.db里的userChannelPosition bucket里不存在" + userName + "-" + channelName)
+				retBucketName = ""
+				retBucketKey = ""
 				return nil
 			} else {
 				if d, err := json_v1.JsonDecode(string(v)); err != nil {
