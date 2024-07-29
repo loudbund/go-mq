@@ -144,6 +144,7 @@ func NewClient(Ip string, Port int) (*client, error) {
 	fmt.Println("连接服务：", Ip, Port)
 
 	dial, err := grpc.Dial(fmt.Sprintf("%s:%d", Ip, Port),
+		grpc.WithInsecure(),
 		grpc.WithDefaultCallOptions(
 			grpc.MaxCallRecvMsgSize(10*1024*1024),
 			grpc.MaxCallSendMsgSize(10*1024*1024),
