@@ -24,14 +24,14 @@ type pushClient struct {
 
 // PushOne 推送一条数据
 // 内部控制发送内容和触发回调
-// 1、收到改push数据后，已发送数据达到200条
+// 1、收到改push数据后，已发送数据达到200(与参数较小者)条
 // 1.1、停掉定时器，
 // 1.2、清掉缓冲数据值为0
 // 1.3、发送本条数据采用DataType_DataEnd，
 // 1.4、发送数据
 // 1.5、等待服务器的消息后，
 // 1.6、调用回调函数
-// 2、收到改push数据后，已发送数据未到200条，
+// 2、收到改push数据后，已发送数据未到200(与参数较小者)条，
 // 2.1、发送本条数据采用DataType_DataOnly，
 // 2.2、有缓冲数据值，且未设置定时器则设置定时器
 // 2.3、发送数据
@@ -40,14 +40,20 @@ type pushClient struct {
 // 3.2、等待服务器消息
 // 3.3、执行回调
 // 3.4、关掉定时器，清空掉缓冲数据值
-func (p *pushClient) PushOne(pushChannel string, pushData []byte) {
+func (p *pushClient) PushOne(pushChannel string, pushData []byte, maxCacheNum ...int) {
 	p.locker.Lock()
 	defer p.locker.Unlock()
+
+	// 计算最大缓存条数
+	numSendButNoBack := 200
+	if len(maxCacheNum) > 0 && maxCacheNum[0] < numSendButNoBack {
+		numSendButNoBack = maxCacheNum[0]
+	}
 
 	// 计算DataType
 	p.numSendButNoBack++
 	DataType := protoMq.DataType_DataOnly
-	if p.numSendButNoBack >= 200 {
+	if p.numSendButNoBack >= numSendButNoBack {
 		p.numSendButNoBack = 0
 		DataType = protoMq.DataType_DataEnd
 
@@ -137,7 +143,12 @@ func NewClient(Ip string, Port int) (*client, error) {
 	c := &client{}
 	fmt.Println("连接服务：", Ip, Port)
 
-	dial, err := grpc.Dial(fmt.Sprintf("%s:%d", Ip, Port), grpc.WithInsecure())
+	dial, err := grpc.Dial(fmt.Sprintf("%s:%d", Ip, Port),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallRecvMsgSize(10*1024*1024),
+			grpc.MaxCallSendMsgSize(10*1024*1024),
+		),
+	)
 	if err != nil {
 		log.Error(err)
 		return nil, err
