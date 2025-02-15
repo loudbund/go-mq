@@ -13,47 +13,67 @@
 - 5、客户端sdk可能会缓存最长1s数据；消费数据时队列为空时，将延时1s。所以在无存量数据时，最长可能延时2s
 
 ## bolt库说明
-- 1、库sys.db
-  - bucket:  userChannelPosition             【用户拉取数据当前频道拉取位置】
-    - ${userid}-${channelName} = {"bucketName":"xxx","bucketKey":"xxx","lastActiveTime":"2024-01-01 12:12:12"}
-  - bucket:  channelBuckets-${channelName}  【频道的bucket集合】
-    - ${bucketName} = 1/0        (1:写入激活 0:写入关闭)
-  - bucket:  channelPosition                     【频道当前激活的bucket】
-    - ${channelName} = {"bucketName":"xxx","bucketKey":"xxx","lastActiveTime":"2024-01-01 12:12:12"}
-- 2、${channelName}.db
-  - bucket: ${bucketName}
-    - ${bucketKey} = ${Data}
-
-## 数据读取
-- 1、拉取位置判断
-  - 指定读取最新的：直接取channelPosition的当前位置
-    - read  < sys.db / channelPosition
-  - 参数指定拉取位置：判断位置是否还存在
-    - read  < sys.db / channelBuckets-${channelName}
-  - 未指定拉取位置：读取用户标记的已读取
-    - read  < sys.db / userChannelPosition
-  - 未指定拉取位置：直接取channelPosition的当前位置
-    - read  < sys.db / channelPosition
-- 2、读取到指定条数或大小，读取结束
-  - read  < ${channelName}.db / ${bucketName}
-- 3、已读取完一个历史bucket，切换到下个bucket继续读取
-  - read  < sys.db / channelBuckets-${channelName}
-- 4、激活的bucket已读取完，读取结束
-- 5、读取结束后刷新用户读取位置
-  - write < sys.db / userChannelPosition
+```
+|--	data.db
+|	|--	bucket:Info		// 整体信息
+|	|	|--	key:ChannelId		// JSON格式{"${频道名}":${频道id(int32)}}
+|	|	|--	key:WritingInfo		// 当前写入bucket记录(数据写入用)
+						// struct {
+						//	BucketId int32	// 当前bucketid
+						//	MaxSId	 int32	// 当前已写入的序号号id
+						// }
+|	|--	bucket:(时间int搓转byte) // [byte-int32],一个bucket存一个小时的数据
+|	|	|--	key:BucketInfo			// bucket信息(数据读取用)
+						// struct {
+						//	MaxSId 		 int32	  // 写入的最大序列号id[byte-bint32],为-1表示还未写入结束
+						// }
+|	|	|--	key:[byte-bint32]	// 序列号id对应明细数据，从1开始【其值前4个字节为频道id】
+```
 
 ## 数据写入
-- 1、矫正频道当前的激活bucket并返回激活的bucket
-  - read  < sys.db / channelPosition
-  - write > sys.db / channelPosition
-  - write > sys.db / channelBuckets-${channelName}
-- 2、写入一批数据
-  - write > ${channelName}.db / ${bucketName}
-- 3、刷新频道当前激活bucket信息
-  - write > sys.db > channelPosition
+- 参数
 
-### 使用说明
+  ```
+  - channelName(string)	频道名
+  - data([]byte)			内容数据
+  ```
 
+- 流程
 
+  - 获取频道id
+    - 判断内存变量里是否存在这个频道
+    - 没有，则新增一个，并整体刷新data.db的key:channels
+    - 有，则取出频道id并转换成byte
+  - 取出当前的数据bucket名，序列号id，
+  - 频道id和数据整合
+  - 数据写入
+  - 刷新下一数据bucket名和序列号
+
+## 数据读取
+
+- 参数
+
+  ```
+  -- postion 已获取了的位置，[byte-int32][byte-int32](数据bucket的id和序列号id)
+  ```
+
+- 返回
+
+  ```
+  一次返回多条数据
+  []struct{
+  	Position:([byte-int32][byte-int32])//单条数据的bucketid和序列号id[byte-int32][byte-int32]
+  	Channel:(string) // 频道名称(为空，表示这是一条定位数据)
+  	Data:[]byte // 数据内容
+  }
+  ```
+
+- 逻辑
+
+  - 打开数据bucket
+  - 判断数据是否已全部读取
+    - 已全部读取且没有下一bucket标记，返回
+    - 已全部读取且有下一bucket标记，去读取下一bucket数据
+    - 未全部读取，持续读取
 
 

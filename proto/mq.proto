@@ -3,52 +3,37 @@ syntax = "proto3" ;
 
 option go_package = "./;protoMq" ;
 
-enum DataType {        // 数据说明
-  DataOnly = 0 ;       // 仅数据
-  DataEnd  = 1 ;       // 数据和结束符
-  EndOnly  = 2 ;       // 仅结束符
-}
 
 // 推送数据参数
-message ReqPushData{
-  DataType DataType = 1 ; // 数据说明
-  string Ch      = 2 ;     // 频道
-  bytes  Data    = 3 ;     // 数据内容
+message PushDataReq{
+  string Channel           = 1 ; // 频道
+  bytes  Data              = 2 ; // 数据内容
 }
 
 // 推送数据返回
-message ResPushData{
-  int32  ErrNum = 1 ; // 错误编号，0为正常
-}
-
-enum   BKType  {     // bucket参数类型
-  RemoteSaved      = 0 ;      // 使用远端位置，没有则报错
-  RemoteDefaultNow = 1 ;      // 使用远端位置,没有则使用当前位置
-  RemoteDefaultAll = 2 ;      // 使用远端位置,没有读取出所有的
-  UserSet          = 3 ;      // 使用指定位置
+message PushDataRes{
+  int32  ErrNum            = 1 ; // 错误编号，0为正常
+  string Msg               = 2 ; // 消息内容
 }
 
 // 拉取数据参数
-message ReqPullData{
-  string User    = 1 ; // 用户
-  string Ch      = 2 ; // 频道
-  BKType BKType  = 3 ; // bucket参数类型
-  string BKName  = 4 ; // bucket name
-  string BKKey   = 5 ; // bucket key
+message PullDataReq{
+  repeated string Channels = 1 ; // 频道: 支持多个
+  int64           Position = 2 ; // 已读取到的位置
 }
 
 // 拉取数据返回
-message ResPullData{
-  int32  ErrNum = 1 ; // 错误编号，0为正常
-  string BKName = 2 ; // bucket name
-  string BKKey  = 3 ; // bucket key
-  bytes  Data   = 4 ; // 数据内容
+message PullDataRes{
+  int32  ErrNum            = 1 ; // 错误编号，0为正常
+  string Channel           = 2 ; // 频道
+  int64  Position          = 3 ; // 本条数据的位置
+  bytes  Data              = 4 ; // 数据内容
 }
 
 // 流需要stream 标识
 service Mq {
-  rpc  PushData(stream ReqPushData) returns (stream ResPushData);
-  rpc  PullData(ReqPullData) returns (stream ResPullData);
+  rpc  PushData(PushDataReq) returns (PushDataRes);
+  rpc  PullData(PullDataReq) returns (stream PullDataRes);
 }
 
 /*

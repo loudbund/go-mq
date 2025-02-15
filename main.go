@@ -37,25 +37,6 @@ func init() {
 		utils_v1.File().MkdirAll(".", "logs")
 	}
 
-	// 读取配置
-	service.CfgBoltDb.Host, _ = utils_v1.Config().GetCfgString("conf/app.conf", "main", "Host")
-	service.CfgBoltDb.Port, _ = utils_v1.Config().GetCfgInt("conf/app.conf", "main", "Port")
-
-	service.CfgBoltDb.DbFolder, _ = utils_v1.Config().GetCfgString("conf/app.conf", "main", "DbFolder")
-	service.CfgBoltDb.SysDbName, _ = utils_v1.Config().GetCfgString("conf/app.conf", "main", "SysDbName")
-	service.CfgBoltDb.PreChannelDb, _ = utils_v1.Config().GetCfgString("conf/app.conf", "main", "PreChannelDb")
-
-	service.CfgBoltDb.PushPerNumLimit, _ = utils_v1.Config().GetCfgInt("conf/app.conf", "main", "PushPerNumLimit")
-
-	service.CfgBoltDb.BucketNameUserChannelPosition, _ = utils_v1.Config().GetCfgString("conf/app.conf", "main", "BucketNameUserChannelPosition")
-	service.CfgBoltDb.BucketNameChannelPosition, _ = utils_v1.Config().GetCfgString("conf/app.conf", "main", "BucketNameChannelPosition")
-
-	service.CfgBoltDb.HourDataRetain, _ = utils_v1.Config().GetCfgInt("conf/app.conf", "main", "HourDataRetain")
-
-	fmt.Println(service.CfgBoltDb)
-
-	// 初始化系统数据库
-	(&service.SysDb{}).Init()
 }
 
 // 程序主入口
@@ -75,9 +56,6 @@ func main() {
 func Exec() {
 	// 启动grpc服务
 	go service.RunGrpcServer(service.CfgBoltDb.Host, service.CfgBoltDb.Port)
-
-	// 启动定时清理
-	go service.RunClearExpireBucket()
 
 	// 启动pprof
 	//pprofAddr := "0.0.0.0:6060"

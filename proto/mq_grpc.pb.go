@@ -29,8 +29,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MqClient interface {
-	PushData(ctx context.Context, opts ...grpc.CallOption) (Mq_PushDataClient, error)
-	PullData(ctx context.Context, in *ReqPullData, opts ...grpc.CallOption) (Mq_PullDataClient, error)
+	PushData(ctx context.Context, in *PushDataReq, opts ...grpc.CallOption) (*PushDataRes, error)
+	PullData(ctx context.Context, in *PullDataReq, opts ...grpc.CallOption) (Mq_PullDataClient, error)
 }
 
 type mqClient struct {
@@ -41,39 +41,17 @@ func NewMqClient(cc grpc.ClientConnInterface) MqClient {
 	return &mqClient{cc}
 }
 
-func (c *mqClient) PushData(ctx context.Context, opts ...grpc.CallOption) (Mq_PushDataClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Mq_ServiceDesc.Streams[0], Mq_PushData_FullMethodName, opts...)
+func (c *mqClient) PushData(ctx context.Context, in *PushDataReq, opts ...grpc.CallOption) (*PushDataRes, error) {
+	out := new(PushDataRes)
+	err := c.cc.Invoke(ctx, Mq_PushData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &mqPushDataClient{stream}
-	return x, nil
+	return out, nil
 }
 
-type Mq_PushDataClient interface {
-	Send(*ReqPushData) error
-	Recv() (*ResPushData, error)
-	grpc.ClientStream
-}
-
-type mqPushDataClient struct {
-	grpc.ClientStream
-}
-
-func (x *mqPushDataClient) Send(m *ReqPushData) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *mqPushDataClient) Recv() (*ResPushData, error) {
-	m := new(ResPushData)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
-func (c *mqClient) PullData(ctx context.Context, in *ReqPullData, opts ...grpc.CallOption) (Mq_PullDataClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Mq_ServiceDesc.Streams[1], Mq_PullData_FullMethodName, opts...)
+func (c *mqClient) PullData(ctx context.Context, in *PullDataReq, opts ...grpc.CallOption) (Mq_PullDataClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Mq_ServiceDesc.Streams[0], Mq_PullData_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +66,7 @@ func (c *mqClient) PullData(ctx context.Context, in *ReqPullData, opts ...grpc.C
 }
 
 type Mq_PullDataClient interface {
-	Recv() (*ResPullData, error)
+	Recv() (*PullDataRes, error)
 	grpc.ClientStream
 }
 
@@ -96,8 +74,8 @@ type mqPullDataClient struct {
 	grpc.ClientStream
 }
 
-func (x *mqPullDataClient) Recv() (*ResPullData, error) {
-	m := new(ResPullData)
+func (x *mqPullDataClient) Recv() (*PullDataRes, error) {
+	m := new(PullDataRes)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -108,8 +86,8 @@ func (x *mqPullDataClient) Recv() (*ResPullData, error) {
 // All implementations must embed UnimplementedMqServer
 // for forward compatibility
 type MqServer interface {
-	PushData(Mq_PushDataServer) error
-	PullData(*ReqPullData, Mq_PullDataServer) error
+	PushData(context.Context, *PushDataReq) (*PushDataRes, error)
+	PullData(*PullDataReq, Mq_PullDataServer) error
 	mustEmbedUnimplementedMqServer()
 }
 
@@ -117,10 +95,10 @@ type MqServer interface {
 type UnimplementedMqServer struct {
 }
 
-func (UnimplementedMqServer) PushData(Mq_PushDataServer) error {
-	return status.Errorf(codes.Unimplemented, "method PushData not implemented")
+func (UnimplementedMqServer) PushData(context.Context, *PushDataReq) (*PushDataRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PushData not implemented")
 }
-func (UnimplementedMqServer) PullData(*ReqPullData, Mq_PullDataServer) error {
+func (UnimplementedMqServer) PullData(*PullDataReq, Mq_PullDataServer) error {
 	return status.Errorf(codes.Unimplemented, "method PullData not implemented")
 }
 func (UnimplementedMqServer) mustEmbedUnimplementedMqServer() {}
@@ -136,34 +114,26 @@ func RegisterMqServer(s grpc.ServiceRegistrar, srv MqServer) {
 	s.RegisterService(&Mq_ServiceDesc, srv)
 }
 
-func _Mq_PushData_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MqServer).PushData(&mqPushDataServer{stream})
-}
-
-type Mq_PushDataServer interface {
-	Send(*ResPushData) error
-	Recv() (*ReqPushData, error)
-	grpc.ServerStream
-}
-
-type mqPushDataServer struct {
-	grpc.ServerStream
-}
-
-func (x *mqPushDataServer) Send(m *ResPushData) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *mqPushDataServer) Recv() (*ReqPushData, error) {
-	m := new(ReqPushData)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _Mq_PushData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PushDataReq)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(MqServer).PushData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Mq_PushData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MqServer).PushData(ctx, req.(*PushDataReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Mq_PullData_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(ReqPullData)
+	m := new(PullDataReq)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
@@ -171,7 +141,7 @@ func _Mq_PullData_Handler(srv interface{}, stream grpc.ServerStream) error {
 }
 
 type Mq_PullDataServer interface {
-	Send(*ResPullData) error
+	Send(*PullDataRes) error
 	grpc.ServerStream
 }
 
@@ -179,7 +149,7 @@ type mqPullDataServer struct {
 	grpc.ServerStream
 }
 
-func (x *mqPullDataServer) Send(m *ResPullData) error {
+func (x *mqPullDataServer) Send(m *PullDataRes) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -189,14 +159,13 @@ func (x *mqPullDataServer) Send(m *ResPullData) error {
 var Mq_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "Mq",
 	HandlerType: (*MqServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "PushData",
-			Handler:       _Mq_PushData_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
+			MethodName: "PushData",
+			Handler:    _Mq_PushData_Handler,
 		},
+	},
+	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "PullData",
 			Handler:       _Mq_PullData_Handler,

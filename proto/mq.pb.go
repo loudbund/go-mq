@@ -22,120 +22,18 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type DataType int32
-
-const (
-	DataType_DataOnly DataType = 0 // 仅数据
-	DataType_DataEnd  DataType = 1 // 数据和结束符
-	DataType_EndOnly  DataType = 2 // 仅结束符
-)
-
-// Enum value maps for DataType.
-var (
-	DataType_name = map[int32]string{
-		0: "DataOnly",
-		1: "DataEnd",
-		2: "EndOnly",
-	}
-	DataType_value = map[string]int32{
-		"DataOnly": 0,
-		"DataEnd":  1,
-		"EndOnly":  2,
-	}
-)
-
-func (x DataType) Enum() *DataType {
-	p := new(DataType)
-	*p = x
-	return p
-}
-
-func (x DataType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (DataType) Descriptor() protoreflect.EnumDescriptor {
-	return file_mq_proto_enumTypes[0].Descriptor()
-}
-
-func (DataType) Type() protoreflect.EnumType {
-	return &file_mq_proto_enumTypes[0]
-}
-
-func (x DataType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use DataType.Descriptor instead.
-func (DataType) EnumDescriptor() ([]byte, []int) {
-	return file_mq_proto_rawDescGZIP(), []int{0}
-}
-
-type BKType int32
-
-const (
-	BKType_RemoteSaved      BKType = 0 // 使用远端位置，没有则报错
-	BKType_RemoteDefaultNow BKType = 1 // 使用远端位置,没有则使用当前位置
-	BKType_RemoteDefaultAll BKType = 2 // 使用远端位置,没有读取出所有的
-	BKType_UserSet          BKType = 3 // 使用指定位置
-)
-
-// Enum value maps for BKType.
-var (
-	BKType_name = map[int32]string{
-		0: "RemoteSaved",
-		1: "RemoteDefaultNow",
-		2: "RemoteDefaultAll",
-		3: "UserSet",
-	}
-	BKType_value = map[string]int32{
-		"RemoteSaved":      0,
-		"RemoteDefaultNow": 1,
-		"RemoteDefaultAll": 2,
-		"UserSet":          3,
-	}
-)
-
-func (x BKType) Enum() *BKType {
-	p := new(BKType)
-	*p = x
-	return p
-}
-
-func (x BKType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (BKType) Descriptor() protoreflect.EnumDescriptor {
-	return file_mq_proto_enumTypes[1].Descriptor()
-}
-
-func (BKType) Type() protoreflect.EnumType {
-	return &file_mq_proto_enumTypes[1]
-}
-
-func (x BKType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use BKType.Descriptor instead.
-func (BKType) EnumDescriptor() ([]byte, []int) {
-	return file_mq_proto_rawDescGZIP(), []int{1}
-}
-
 // 推送数据参数
-type ReqPushData struct {
+type PushDataReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DataType DataType `protobuf:"varint,1,opt,name=DataType,proto3,enum=DataType" json:"DataType,omitempty"` // 数据说明
-	Ch       string   `protobuf:"bytes,2,opt,name=Ch,proto3" json:"Ch,omitempty"`                            // 频道
-	Data     []byte   `protobuf:"bytes,3,opt,name=Data,proto3" json:"Data,omitempty"`                        // 数据内容
+	Channel string `protobuf:"bytes,1,opt,name=Channel,proto3" json:"Channel,omitempty"` // 频道
+	Data    []byte `protobuf:"bytes,2,opt,name=Data,proto3" json:"Data,omitempty"`       // 数据内容
 }
 
-func (x *ReqPushData) Reset() {
-	*x = ReqPushData{}
+func (x *PushDataReq) Reset() {
+	*x = PushDataReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mq_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -143,13 +41,13 @@ func (x *ReqPushData) Reset() {
 	}
 }
 
-func (x *ReqPushData) String() string {
+func (x *PushDataReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ReqPushData) ProtoMessage() {}
+func (*PushDataReq) ProtoMessage() {}
 
-func (x *ReqPushData) ProtoReflect() protoreflect.Message {
+func (x *PushDataReq) ProtoReflect() protoreflect.Message {
 	mi := &file_mq_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -161,26 +59,19 @@ func (x *ReqPushData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ReqPushData.ProtoReflect.Descriptor instead.
-func (*ReqPushData) Descriptor() ([]byte, []int) {
+// Deprecated: Use PushDataReq.ProtoReflect.Descriptor instead.
+func (*PushDataReq) Descriptor() ([]byte, []int) {
 	return file_mq_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ReqPushData) GetDataType() DataType {
+func (x *PushDataReq) GetChannel() string {
 	if x != nil {
-		return x.DataType
-	}
-	return DataType_DataOnly
-}
-
-func (x *ReqPushData) GetCh() string {
-	if x != nil {
-		return x.Ch
+		return x.Channel
 	}
 	return ""
 }
 
-func (x *ReqPushData) GetData() []byte {
+func (x *PushDataReq) GetData() []byte {
 	if x != nil {
 		return x.Data
 	}
@@ -188,16 +79,17 @@ func (x *ReqPushData) GetData() []byte {
 }
 
 // 推送数据返回
-type ResPushData struct {
+type PushDataRes struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ErrNum int32 `protobuf:"varint,1,opt,name=ErrNum,proto3" json:"ErrNum,omitempty"` // 错误编号，0为正常
+	ErrNum int32  `protobuf:"varint,1,opt,name=ErrNum,proto3" json:"ErrNum,omitempty"` // 错误编号，0为正常
+	Msg    string `protobuf:"bytes,2,opt,name=Msg,proto3" json:"Msg,omitempty"`        // 消息内容
 }
 
-func (x *ResPushData) Reset() {
-	*x = ResPushData{}
+func (x *PushDataRes) Reset() {
+	*x = PushDataRes{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mq_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -205,13 +97,13 @@ func (x *ResPushData) Reset() {
 	}
 }
 
-func (x *ResPushData) String() string {
+func (x *PushDataRes) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ResPushData) ProtoMessage() {}
+func (*PushDataRes) ProtoMessage() {}
 
-func (x *ResPushData) ProtoReflect() protoreflect.Message {
+func (x *PushDataRes) ProtoReflect() protoreflect.Message {
 	mi := &file_mq_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -223,33 +115,37 @@ func (x *ResPushData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ResPushData.ProtoReflect.Descriptor instead.
-func (*ResPushData) Descriptor() ([]byte, []int) {
+// Deprecated: Use PushDataRes.ProtoReflect.Descriptor instead.
+func (*PushDataRes) Descriptor() ([]byte, []int) {
 	return file_mq_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ResPushData) GetErrNum() int32 {
+func (x *PushDataRes) GetErrNum() int32 {
 	if x != nil {
 		return x.ErrNum
 	}
 	return 0
 }
 
+func (x *PushDataRes) GetMsg() string {
+	if x != nil {
+		return x.Msg
+	}
+	return ""
+}
+
 // 拉取数据参数
-type ReqPullData struct {
+type PullDataReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	User   string `protobuf:"bytes,1,opt,name=User,proto3" json:"User,omitempty"`                  // 用户
-	Ch     string `protobuf:"bytes,2,opt,name=Ch,proto3" json:"Ch,omitempty"`                      // 频道
-	BKType BKType `protobuf:"varint,3,opt,name=BKType,proto3,enum=BKType" json:"BKType,omitempty"` // bucket参数类型
-	BKName string `protobuf:"bytes,4,opt,name=BKName,proto3" json:"BKName,omitempty"`              // bucket name
-	BKKey  string `protobuf:"bytes,5,opt,name=BKKey,proto3" json:"BKKey,omitempty"`                // bucket key
+	Channels []string `protobuf:"bytes,1,rep,name=Channels,proto3" json:"Channels,omitempty"`  // 频道: 支持多个
+	Position int64    `protobuf:"varint,2,opt,name=Position,proto3" json:"Position,omitempty"` // 已读取到的位置
 }
 
-func (x *ReqPullData) Reset() {
-	*x = ReqPullData{}
+func (x *PullDataReq) Reset() {
+	*x = PullDataReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mq_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -257,13 +153,13 @@ func (x *ReqPullData) Reset() {
 	}
 }
 
-func (x *ReqPullData) String() string {
+func (x *PullDataReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ReqPullData) ProtoMessage() {}
+func (*PullDataReq) ProtoMessage() {}
 
-func (x *ReqPullData) ProtoReflect() protoreflect.Message {
+func (x *PullDataReq) ProtoReflect() protoreflect.Message {
 	mi := &file_mq_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -275,60 +171,39 @@ func (x *ReqPullData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ReqPullData.ProtoReflect.Descriptor instead.
-func (*ReqPullData) Descriptor() ([]byte, []int) {
+// Deprecated: Use PullDataReq.ProtoReflect.Descriptor instead.
+func (*PullDataReq) Descriptor() ([]byte, []int) {
 	return file_mq_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *ReqPullData) GetUser() string {
+func (x *PullDataReq) GetChannels() []string {
 	if x != nil {
-		return x.User
+		return x.Channels
 	}
-	return ""
+	return nil
 }
 
-func (x *ReqPullData) GetCh() string {
+func (x *PullDataReq) GetPosition() int64 {
 	if x != nil {
-		return x.Ch
+		return x.Position
 	}
-	return ""
-}
-
-func (x *ReqPullData) GetBKType() BKType {
-	if x != nil {
-		return x.BKType
-	}
-	return BKType_RemoteSaved
-}
-
-func (x *ReqPullData) GetBKName() string {
-	if x != nil {
-		return x.BKName
-	}
-	return ""
-}
-
-func (x *ReqPullData) GetBKKey() string {
-	if x != nil {
-		return x.BKKey
-	}
-	return ""
+	return 0
 }
 
 // 拉取数据返回
-type ResPullData struct {
+type PullDataRes struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	ErrNum int32  `protobuf:"varint,1,opt,name=ErrNum,proto3" json:"ErrNum,omitempty"` // 错误编号，0为正常
-	BKName string `protobuf:"bytes,2,opt,name=BKName,proto3" json:"BKName,omitempty"`  // bucket name
-	BKKey  string `protobuf:"bytes,3,opt,name=BKKey,proto3" json:"BKKey,omitempty"`    // bucket key
-	Data   []byte `protobuf:"bytes,4,opt,name=Data,proto3" json:"Data,omitempty"`      // 数据内容
+	ErrNum   int32  `protobuf:"varint,1,opt,name=ErrNum,proto3" json:"ErrNum,omitempty"`     // 错误编号，0为正常
+	Channel  string `protobuf:"bytes,2,opt,name=Channel,proto3" json:"Channel,omitempty"`    // 频道
+	Position int64  `protobuf:"varint,3,opt,name=Position,proto3" json:"Position,omitempty"` // 本条数据的位置
+	Data     []byte `protobuf:"bytes,4,opt,name=Data,proto3" json:"Data,omitempty"`          // 数据内容
 }
 
-func (x *ResPullData) Reset() {
-	*x = ResPullData{}
+func (x *PullDataRes) Reset() {
+	*x = PullDataRes{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_mq_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -336,13 +211,13 @@ func (x *ResPullData) Reset() {
 	}
 }
 
-func (x *ResPullData) String() string {
+func (x *PullDataRes) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ResPullData) ProtoMessage() {}
+func (*PullDataRes) ProtoMessage() {}
 
-func (x *ResPullData) ProtoReflect() protoreflect.Message {
+func (x *PullDataRes) ProtoReflect() protoreflect.Message {
 	mi := &file_mq_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -354,33 +229,33 @@ func (x *ResPullData) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ResPullData.ProtoReflect.Descriptor instead.
-func (*ResPullData) Descriptor() ([]byte, []int) {
+// Deprecated: Use PullDataRes.ProtoReflect.Descriptor instead.
+func (*PullDataRes) Descriptor() ([]byte, []int) {
 	return file_mq_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *ResPullData) GetErrNum() int32 {
+func (x *PullDataRes) GetErrNum() int32 {
 	if x != nil {
 		return x.ErrNum
 	}
 	return 0
 }
 
-func (x *ResPullData) GetBKName() string {
+func (x *PullDataRes) GetChannel() string {
 	if x != nil {
-		return x.BKName
+		return x.Channel
 	}
 	return ""
 }
 
-func (x *ResPullData) GetBKKey() string {
+func (x *PullDataRes) GetPosition() int64 {
 	if x != nil {
-		return x.BKKey
+		return x.Position
 	}
-	return ""
+	return 0
 }
 
-func (x *ResPullData) GetData() []byte {
+func (x *PullDataRes) GetData() []byte {
 	if x != nil {
 		return x.Data
 	}
@@ -390,46 +265,33 @@ func (x *ResPullData) GetData() []byte {
 var File_mq_proto protoreflect.FileDescriptor
 
 var file_mq_proto_rawDesc = []byte{
-	0x0a, 0x08, 0x6d, 0x71, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x58, 0x0a, 0x0b, 0x52, 0x65,
-	0x71, 0x50, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x12, 0x25, 0x0a, 0x08, 0x44, 0x61, 0x74,
-	0x61, 0x54, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x09, 0x2e, 0x44, 0x61,
-	0x74, 0x61, 0x54, 0x79, 0x70, 0x65, 0x52, 0x08, 0x44, 0x61, 0x74, 0x61, 0x54, 0x79, 0x70, 0x65,
-	0x12, 0x0e, 0x0a, 0x02, 0x43, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x43, 0x68,
-	0x12, 0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04,
-	0x44, 0x61, 0x74, 0x61, 0x22, 0x25, 0x0a, 0x0b, 0x52, 0x65, 0x73, 0x50, 0x75, 0x73, 0x68, 0x44,
-	0x61, 0x74, 0x61, 0x12, 0x16, 0x0a, 0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x05, 0x52, 0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d, 0x22, 0x80, 0x01, 0x0a, 0x0b,
-	0x52, 0x65, 0x71, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x12, 0x12, 0x0a, 0x04, 0x55,
-	0x73, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x55, 0x73, 0x65, 0x72, 0x12,
-	0x0e, 0x0a, 0x02, 0x43, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x43, 0x68, 0x12,
-	0x1f, 0x0a, 0x06, 0x42, 0x4b, 0x54, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0e, 0x32,
-	0x07, 0x2e, 0x42, 0x4b, 0x54, 0x79, 0x70, 0x65, 0x52, 0x06, 0x42, 0x4b, 0x54, 0x79, 0x70, 0x65,
-	0x12, 0x16, 0x0a, 0x06, 0x42, 0x4b, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09,
-	0x52, 0x06, 0x42, 0x4b, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x42, 0x4b, 0x4b, 0x65,
-	0x79, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x42, 0x4b, 0x4b, 0x65, 0x79, 0x22, 0x67,
-	0x0a, 0x0b, 0x52, 0x65, 0x73, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x12, 0x16, 0x0a,
-	0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x45,
-	0x72, 0x72, 0x4e, 0x75, 0x6d, 0x12, 0x16, 0x0a, 0x06, 0x42, 0x4b, 0x4e, 0x61, 0x6d, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x42, 0x4b, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a,
-	0x05, 0x42, 0x4b, 0x4b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x42, 0x4b,
-	0x4b, 0x65, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18, 0x04, 0x20, 0x01, 0x28,
-	0x0c, 0x52, 0x04, 0x44, 0x61, 0x74, 0x61, 0x2a, 0x32, 0x0a, 0x08, 0x44, 0x61, 0x74, 0x61, 0x54,
-	0x79, 0x70, 0x65, 0x12, 0x0c, 0x0a, 0x08, 0x44, 0x61, 0x74, 0x61, 0x4f, 0x6e, 0x6c, 0x79, 0x10,
-	0x00, 0x12, 0x0b, 0x0a, 0x07, 0x44, 0x61, 0x74, 0x61, 0x45, 0x6e, 0x64, 0x10, 0x01, 0x12, 0x0b,
-	0x0a, 0x07, 0x45, 0x6e, 0x64, 0x4f, 0x6e, 0x6c, 0x79, 0x10, 0x02, 0x2a, 0x52, 0x0a, 0x06, 0x42,
-	0x4b, 0x54, 0x79, 0x70, 0x65, 0x12, 0x0f, 0x0a, 0x0b, 0x52, 0x65, 0x6d, 0x6f, 0x74, 0x65, 0x53,
-	0x61, 0x76, 0x65, 0x64, 0x10, 0x00, 0x12, 0x14, 0x0a, 0x10, 0x52, 0x65, 0x6d, 0x6f, 0x74, 0x65,
-	0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x4e, 0x6f, 0x77, 0x10, 0x01, 0x12, 0x14, 0x0a, 0x10,
-	0x52, 0x65, 0x6d, 0x6f, 0x74, 0x65, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x41, 0x6c, 0x6c,
-	0x10, 0x02, 0x12, 0x0b, 0x0a, 0x07, 0x55, 0x73, 0x65, 0x72, 0x53, 0x65, 0x74, 0x10, 0x03, 0x32,
-	0x5a, 0x0a, 0x02, 0x4d, 0x71, 0x12, 0x2a, 0x0a, 0x08, 0x50, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74,
-	0x61, 0x12, 0x0c, 0x2e, 0x52, 0x65, 0x71, 0x50, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x1a,
-	0x0c, 0x2e, 0x52, 0x65, 0x73, 0x50, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x28, 0x01, 0x30,
-	0x01, 0x12, 0x28, 0x0a, 0x08, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0c, 0x2e,
-	0x52, 0x65, 0x71, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x1a, 0x0c, 0x2e, 0x52, 0x65,
-	0x73, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x30, 0x01, 0x42, 0x0c, 0x5a, 0x0a, 0x2e,
-	0x2f, 0x3b, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x4d, 0x71, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x33,
+	0x0a, 0x08, 0x6d, 0x71, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x3b, 0x0a, 0x0b, 0x50, 0x75,
+	0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x12, 0x18, 0x0a, 0x07, 0x43, 0x68, 0x61,
+	0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x43, 0x68, 0x61, 0x6e,
+	0x6e, 0x65, 0x6c, 0x12, 0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x0c, 0x52, 0x04, 0x44, 0x61, 0x74, 0x61, 0x22, 0x37, 0x0a, 0x0b, 0x50, 0x75, 0x73, 0x68, 0x44,
+	0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d, 0x12, 0x10,
+	0x0a, 0x03, 0x4d, 0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x4d, 0x73, 0x67,
+	0x22, 0x45, 0x0a, 0x0b, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x12,
+	0x1a, 0x0a, 0x08, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
+	0x09, 0x52, 0x08, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x73, 0x12, 0x1a, 0x0a, 0x08, 0x50,
+	0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x50,
+	0x6f, 0x73, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x6f, 0x0a, 0x0b, 0x50, 0x75, 0x6c, 0x6c, 0x44,
+	0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x45, 0x72, 0x72, 0x4e, 0x75, 0x6d, 0x12, 0x18,
+	0x0a, 0x07, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x1a, 0x0a, 0x08, 0x50, 0x6f, 0x73, 0x69,
+	0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x50, 0x6f, 0x73, 0x69,
+	0x74, 0x69, 0x6f, 0x6e, 0x12, 0x12, 0x0a, 0x04, 0x44, 0x61, 0x74, 0x61, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x0c, 0x52, 0x04, 0x44, 0x61, 0x74, 0x61, 0x32, 0x56, 0x0a, 0x02, 0x4d, 0x71, 0x12, 0x26,
+	0x0a, 0x08, 0x50, 0x75, 0x73, 0x68, 0x44, 0x61, 0x74, 0x61, 0x12, 0x0c, 0x2e, 0x50, 0x75, 0x73,
+	0x68, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71, 0x1a, 0x0c, 0x2e, 0x50, 0x75, 0x73, 0x68, 0x44,
+	0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x12, 0x28, 0x0a, 0x08, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61,
+	0x74, 0x61, 0x12, 0x0c, 0x2e, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x71,
+	0x1a, 0x0c, 0x2e, 0x50, 0x75, 0x6c, 0x6c, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x73, 0x30, 0x01,
+	0x42, 0x0c, 0x5a, 0x0a, 0x2e, 0x2f, 0x3b, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x4d, 0x71, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -444,28 +306,23 @@ func file_mq_proto_rawDescGZIP() []byte {
 	return file_mq_proto_rawDescData
 }
 
-var file_mq_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_mq_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_mq_proto_goTypes = []interface{}{
-	(DataType)(0),       // 0: DataType
-	(BKType)(0),         // 1: BKType
-	(*ReqPushData)(nil), // 2: ReqPushData
-	(*ResPushData)(nil), // 3: ResPushData
-	(*ReqPullData)(nil), // 4: ReqPullData
-	(*ResPullData)(nil), // 5: ResPullData
+	(*PushDataReq)(nil), // 0: PushDataReq
+	(*PushDataRes)(nil), // 1: PushDataRes
+	(*PullDataReq)(nil), // 2: PullDataReq
+	(*PullDataRes)(nil), // 3: PullDataRes
 }
 var file_mq_proto_depIdxs = []int32{
-	0, // 0: ReqPushData.DataType:type_name -> DataType
-	1, // 1: ReqPullData.BKType:type_name -> BKType
-	2, // 2: Mq.PushData:input_type -> ReqPushData
-	4, // 3: Mq.PullData:input_type -> ReqPullData
-	3, // 4: Mq.PushData:output_type -> ResPushData
-	5, // 5: Mq.PullData:output_type -> ResPullData
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 0: Mq.PushData:input_type -> PushDataReq
+	2, // 1: Mq.PullData:input_type -> PullDataReq
+	1, // 2: Mq.PushData:output_type -> PushDataRes
+	3, // 3: Mq.PullData:output_type -> PullDataRes
+	2, // [2:4] is the sub-list for method output_type
+	0, // [0:2] is the sub-list for method input_type
+	0, // [0:0] is the sub-list for extension type_name
+	0, // [0:0] is the sub-list for extension extendee
+	0, // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_mq_proto_init() }
@@ -475,7 +332,7 @@ func file_mq_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_mq_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReqPushData); i {
+			switch v := v.(*PushDataReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -487,7 +344,7 @@ func file_mq_proto_init() {
 			}
 		}
 		file_mq_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ResPushData); i {
+			switch v := v.(*PushDataRes); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -499,7 +356,7 @@ func file_mq_proto_init() {
 			}
 		}
 		file_mq_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ReqPullData); i {
+			switch v := v.(*PullDataReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -511,7 +368,7 @@ func file_mq_proto_init() {
 			}
 		}
 		file_mq_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*ResPullData); i {
+			switch v := v.(*PullDataRes); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -528,14 +385,13 @@ func file_mq_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_mq_proto_rawDesc,
-			NumEnums:      2,
+			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_mq_proto_goTypes,
 		DependencyIndexes: file_mq_proto_depIdxs,
-		EnumInfos:         file_mq_proto_enumTypes,
 		MessageInfos:      file_mq_proto_msgTypes,
 	}.Build()
 	File_mq_proto = out.File
