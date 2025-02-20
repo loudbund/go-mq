@@ -25,7 +25,7 @@ func main() {
 		defer cancel()
 
 		D := &protoMq.PushDataReq{
-			Topic: []string{"user", "homework"}[rand.Intn(2)],
+			Topic: [][]byte{[]byte("user"), []byte("homework")}[rand.Intn(2)],
 			Data:  []byte(`{"hello":"` + utils_v1.Time().DateTime() + `"}`),
 		}
 		fmt.Println(D)

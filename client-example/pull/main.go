@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/loudbund/go-mq/client"
 	protoMq "github.com/loudbund/go-mq/proto"
-	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -15,9 +14,9 @@ func init() {
 
 // 6、主函数 -------------------------------------------------------------------------
 func main() {
-	topics := []string{
-		"user",
-		//"homework",
+	topics := [][]byte{
+		[]byte("user"),
+		//[]byte("homework"),
 	}
 
 	curPosition := (int64(1739178000) << 32) | int64(0)
@@ -29,33 +28,25 @@ func main() {
 
 		// 2、发送数据拉取请求
 		for {
-			wait := false
-
-			if err := c.Pull(&protoMq.PullDataReq{Topics: topics, Position: curPosition, ZLib: true},
-				func(eventData *client.DataEvent) bool {
-					// 收到有效数据
-					if eventData.Topic != "" {
-						fmt.Println(eventData.Topic, eventData.Position, string(eventData.Data))
+			err = c.Pull(&protoMq.PullDataReq{Topics: topics, Position: curPosition},
+				func(eData *protoMq.PullDataRes) bool {
+					// 处理数据
+					if curPosition != eData.Position {
+						fmt.Println(string(eData.Topic), eData.Position, string(eData.Data))
 					}
 
 					// 游标更新
-					curPosition = eventData.Position
-
-					// 返回true表示继续接收数据
-					if eventData.Topic == "" {
-						wait = true
-						return false
-					}
+					curPosition = eData.Position
 
 					return true
-				}); err != nil {
+				},
+			)
+			if err != nil {
 				log.Panic(err)
 			}
 
-			if wait {
-				fmt.Println("wait", utils_v1.Time().DateTime())
-				time.Sleep(time.Second)
-			}
+			fmt.Println("waiting 1s")
+			time.Sleep(time.Second * 1)
 		}
 
 	}

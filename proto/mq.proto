@@ -6,7 +6,7 @@ option go_package = "./;protoMq" ;
 
 // 推送数据参数
 message PushDataReq{
-  string Topic             = 1 ; // 频道
+  bytes  Topic             = 1 ; // 频道
   bytes  Data              = 2 ; // 数据内容
 }
 
@@ -18,29 +18,16 @@ message PushDataRes{
 
 // 拉取数据参数
 message PullDataReq{
-  repeated string Topics   = 1 ; // 频道: 支持多个
-  bool            ZLib     = 2 ; // 返回Data数据的类型
-  int64           Position = 3 ; // 已读取到的位置
-}
-
-// 拉取的一条数据格式
-message DataItem{
-  int32  DataId            = 2 ; // 数据id
-  int32  TopicId           = 1 ; // 频道id, 为0表示只是占位数据
-  bytes  Data              = 3 ; // 数据内容
-}
-
-// DataItem 数组
-message DataGroup{
-  int32 Bucket            = 1 ; // 数据所在的bucket
-  repeated DataItem Items = 2 ; // 数据明细
+  repeated bytes  Topics   = 1 ; // 频道: 支持多个
+  int64           Position = 2 ; // 已读取到的位置
 }
 
 // 拉取数据返回【一次只返回一个频道数据，切不会跨bucket】
 message PullDataRes{
   int32  ErrNum            = 1 ; // 错误编号，0为正常
-  map    <int32,string>    TopicMap = 2 ; // 数据包含的频道id和名称(格式为 map[int32]string)
-  bytes  DataMix           = 3 ; // 第一个字节为压缩标记，其后为数据内容；数据内容，未压缩直接反序列化成DataItems，压缩后需要解压再反序列化成DataItems
+  int64  Position          = 2 ; // 位置
+  bytes  Topic             = 3 ; // 频道名称(为空表示没有数据，此时Position有可能是变化了的)
+  bytes  Data              = 4 ; // 数据内容
 }
 
 // 流需要stream 标识
