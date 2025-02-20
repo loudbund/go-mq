@@ -12,6 +12,11 @@ var CfgBoltDb = struct {
 	// 监听端口
 	Port int
 
+	//存储是否开启zlib，默认不开启
+	DBZlibOpen bool
+	//拉取是否开启zlib，默认不开启
+	PullZlibOpen bool
+
 	// 数据单次获取最大行数
 	DataMaxRowCurGet int
 	// 数据单次pull行数
@@ -19,6 +24,9 @@ var CfgBoltDb = struct {
 
 	// 数据保留小时数
 	HourDataRetain int
+
+	// 数据所在目录
+	DataDirName string
 }{}
 
 func init() {
@@ -35,7 +43,8 @@ func init() {
 	}
 
 	// 数据目录不存在则创建
-	if !utils_v1.File().CheckFileExist("data") {
-		utils_v1.File().MkdirAll(".", "data")
+	CfgBoltDb.DataDirName = "boltDb"
+	if !utils_v1.File().CheckFileExist(CfgBoltDb.DataDirName) {
+		utils_v1.File().MkdirAll(".", CfgBoltDb.DataDirName)
 	}
 }

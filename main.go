@@ -45,8 +45,18 @@ func main() {
 
 	var c *string // 运行方式
 	flag.String("v", "", "")
-	c = flag.String("c", "run", "运行方式(status/run/start/stop/kill)")
+	c = flag.String("c", "run", "运行方式(status/run/start/stop/kill/view)")
 	flag.Parse()
+
+	// 查看数据状态
+	if *c == "view" {
+		(&service.Controller{}).View()
+		return
+	}
+	if *c == "zip" {
+		(&service.Controller{}).Zip()
+		return
+	}
 
 	// 运行
 	progress_v1.Exec(Exec, *c, "logs/log.txt")

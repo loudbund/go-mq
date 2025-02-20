@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/loudbund/go-mq/client"
 	protoMq "github.com/loudbund/go-mq/proto"
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
+	"math/rand"
 	"time"
 )
 
@@ -22,10 +24,13 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
-		if r, err := c.Client.PushData(ctx, &protoMq.PushDataReq{
-			Channel: "user",
-			Data:    []byte("hello" + utils_v1.Time().DateTime()),
-		}); err != nil {
+		D := &protoMq.PushDataReq{
+			Topic: []string{"user", "homework"}[rand.Intn(2)],
+			Data:  []byte(`{"hello":"` + utils_v1.Time().DateTime() + `"}`),
+		}
+		fmt.Println(D)
+
+		if r, err := c.Client.PushData(ctx, D); err != nil {
 			log.Panic(err)
 		} else {
 			log.Info(r.ErrNum, r.Msg)
