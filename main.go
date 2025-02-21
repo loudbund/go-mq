@@ -9,6 +9,8 @@ import (
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
 	_ "net/http/pprof"
+	"runtime"
+	"strings"
 )
 
 // 初始化
@@ -25,6 +27,15 @@ var fileList embed.FS
 func init() {
 	// 设置全局日志配置
 	log.SetReportCaller(true)
+	// 设置自定义 Formatter, 修改日志里代码文件相对路径
+	log.SetFormatter(&log.TextFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			file := strings.Split(f.File, "/go-mq/")
+			return fmt.Sprintf("%s:%d", file[len(file)-1], f.Line), ""
+		},
+	})
+	log.SetLevel(log.Level(service.CfgBoltDb.LogLevel))
+
 	// 生成example配置文件
 	if !utils_v1.File().CheckFileExist("conf") {
 		utils_v1.File().MkdirAll(".", "conf")
@@ -51,10 +62,6 @@ func main() {
 	// 查看数据状态
 	if *c == "view" {
 		(&service.Controller{}).View()
-		return
-	}
-	if *c == "zip" {
-		(&service.Controller{}).Zip()
 		return
 	}
 

@@ -59,7 +59,7 @@ func (s *server) PullData(req *protoMq.PullDataReq, cliStr protoMq.Mq_PullDataSe
 	curBucket, curDataId := TBucketId(req.Position>>32), TDataId(req.Position)
 
 	// 循环取数据
-	for i := 0; i < CfgBoltDb.DataRowCurPull; i++ {
+	for i := 0; i < CfgBoltDb.DataRowPerPull; i++ {
 		// 从 BoltDB 获取数据
 		topic, bucket, dataId, data := s.BoltDbControl.GetData(reqTopicMap, curBucket, curDataId)
 

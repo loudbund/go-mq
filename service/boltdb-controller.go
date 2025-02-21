@@ -53,7 +53,8 @@ func (c *Controller) Init() {
 	c.initRunning()
 
 	// 调试：打印写入位置记录和频道ID映射
-	fmt.Println(c.running, c.topicMap)
+	log.Infof("running变量:%v", c.running)
+	log.Infof("topicMap变量:%v", c.topicMap)
 
 	// 定时重新打开数据库
 	go utils_v1.Time().SimpleMsgCron(make(chan bool), 1000*5, func(IsInterval bool) bool {
@@ -110,11 +111,14 @@ func (c *Controller) WriteData(topicName TTopicName, data []byte) error {
 		c.running.DataId = 0
 	}
 
+	// 计算新数据的频道id和数据id
 	topicId := c.getTopicIdFromName(topicName)
 	dataId := c.running.DataId + 1
 
-	// 写入数据; 刷新写入位置记录; 更新写入位置缓存变量
+	// 写入数据
 	c.flushDataBucketDetail(bucket, topicId, dataId, data)
+
+	// 数据写成功后，刷新变量里的bucket和数据id
 	c.running.Bucket, c.running.DataId = bucket, dataId
 
 	return nil
@@ -127,6 +131,10 @@ func (c *Controller) GetData(reqTopicMaps map[TTopicName]bool, curBucket TBucket
 	boltDbLock.Lock()
 	defer boltDbLock.Unlock()
 
+	// 参数调整
+	curBucket, curDataId = c.adjustGetDataParam(curBucket, curDataId)
+
+	//
 	for {
 		// 1、异常了，还没有新数据
 		if curBucket > c.running.Bucket {
@@ -177,6 +185,26 @@ func (c *Controller) GetData(reqTopicMaps map[TTopicName]bool, curBucket TBucket
 	}
 }
 
+// 位置参数矫正
+func (c *Controller) adjustGetDataParam(curBucket TBucketId, curDataId TDataId) (TBucketId, TDataId) {
+	// bucket名称为近30天内的，则位置不作矫正
+	if curBucket > c.running.Bucket-3600*24*30 {
+		return curBucket, curDataId
+	}
+
+	// bucket为0，则从30天前开始取数据
+	if curBucket == 0 {
+		return c.running.Bucket - 3600*24*30, 0
+	}
+
+	// bucket小于0，则只接受新数据
+	if curBucket < 0 {
+		return c.running.Bucket, c.running.DataId
+	}
+
+	return curBucket, curDataId
+}
+
 // View 查看数据库数据
 func (c *Controller) View() {
 	boltDbLock.Lock()
@@ -206,31 +234,6 @@ func (c *Controller) View() {
 			return nil
 		})
 	})
-}
-
-// Zip 查看数据库数据
-func (c *Controller) Zip() {
-	boltDbLock.Lock()
-	defer boltDbLock.Unlock()
-
-	c.reOpenDb()
-	defer c.Destroy()
-
-	// 遍历所有bucket
-	c.dbHandle.Update(func(tx *bolt.Tx) error {
-
-		return tx.ForEach(func(name []byte, b *bolt.Bucket) error {
-
-			if err := tx.DeleteBucket(name); err != nil {
-				log.Panic(err)
-			}
-			fmt.Println(name)
-
-			return nil
-		})
-
-	})
-
 }
 
 // 从db库里获取bucket的信息
@@ -329,9 +332,9 @@ func (c *Controller) getDbDataFromBucket(topicMaps map[TTopicName]bool, bucket T
 	topicName := c.getTopicFromId(topicId)
 
 	if _, ok := topicMaps[topicName]; ok {
-		return "", nil
-	} else {
 		return topicName, detail[4:]
+	} else {
+		return "", nil
 	}
 }
 
