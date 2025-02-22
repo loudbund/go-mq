@@ -7,6 +7,7 @@ import (
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
+	"time"
 )
 
 func init() {
@@ -25,8 +26,16 @@ func main() {
 		}
 		fmt.Println(D)
 
-		if err = c.Push(D); err != nil {
-			log.Error(err)
+		// 2、发送消息
+		for {
+			if err = c.Push(D); err != nil {
+				log.Error(err)
+				log.Info("延时5秒后重试")
+				time.Sleep(time.Second * 5)
+			} else {
+				log.Info("发送成功")
+				break
+			}
 		}
 	}
 }
