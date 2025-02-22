@@ -5,11 +5,13 @@ import (
 	"compress/zlib"
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	protoMq "github.com/loudbund/go-mq/proto"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io"
+	"time"
 )
 
 func init() {
@@ -24,12 +26,17 @@ type DataEvent struct {
 
 // 客户端实例
 type client struct {
-	Client protoMq.MqClient
+	mqClient protoMq.MqClient
 }
 
 // Pull 数据拉取
 func (c *client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.PullDataRes) bool) error {
-	stream, _ := c.Client.PullData(context.Background(), reqData)
+	stream, err := c.mqClient.PullData(context.Background(), reqData)
+
+	if err != nil {
+		log.Error(err)
+		return err
+	}
 
 	// 循环获取，仅当服务器结束，回调返回了false，才会结束
 	for {
@@ -53,6 +60,22 @@ func (c *client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.P
 	}
 }
 
+// Push 推送数据
+func (c *client) Push(dataPush *protoMq.PushDataReq) error {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	if r, err := c.mqClient.PushData(ctx, dataPush); err != nil {
+		log.Errorf("写入mq失败: %v", err)
+		return err
+	} else if r.ErrNum != 0 {
+		log.Errorf("写入mq失败: ErrNum:%d msg:%s", r.ErrNum, r.Msg)
+		return errors.New(r.Msg)
+	}
+
+	return nil
+}
+
 // NewClient 实例化客户端
 func NewClient(Ip string, Port int) (*client, error) {
 	c := &client{}
@@ -69,7 +92,7 @@ func NewClient(Ip string, Port int) (*client, error) {
 		log.Error(err)
 		return nil, err
 	}
-	c.Client = protoMq.NewMqClient(dial)
+	c.mqClient = protoMq.NewMqClient(dial)
 
 	return c, nil
 }
