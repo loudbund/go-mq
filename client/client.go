@@ -163,8 +163,10 @@ func Encode(data interface{}, zLib bool) []byte {
 	if zLib {
 		bv = ZlibEncode(bv)
 		bf.WriteByte(1)
-		bf.Write(bv)
+	} else {
+		bf.WriteByte(0)
 	}
+	bf.Write(bv)
 	return bf.Bytes()
 }
 

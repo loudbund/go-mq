@@ -41,7 +41,7 @@ func main() {
 							if err := client.Decode(eData.Data, Data); err != nil {
 								log.Error(err)
 							}
-							fmt.Println(*Data)
+							fmt.Println(len(eData.Data), *Data)
 						}
 					}
 
