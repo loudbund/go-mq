@@ -116,36 +116,6 @@ func GobDecode(bv []byte, ret interface{}) error {
 	return nil
 }
 
-// Encode  结构体数据编码
-func Encode(da interface{}, zLib bool) []byte {
-	var bf bytes.Buffer
-	bv := GobEncode(da)
-	if zLib {
-		bv = ZlibEncode(bv)
-		bf.WriteByte(1)
-		bf.Write(bv)
-	}
-	return bf.Bytes()
-}
-
-// Decode  结构体数据解码
-func Decode(bv []byte, ret interface{}) error {
-	var D []byte
-	if bv[0] == 1 {
-		if d, err := ZlibDecode(bv[1:]); err != nil {
-			return err
-		} else {
-			D = d
-		}
-	} else {
-		D = bv
-	}
-	if err := GobDecode(D, ret); err != nil {
-		return nil
-	}
-	return nil
-}
-
 // ZlibEncode zlib压缩
 func ZlibEncode(data []byte) []byte {
 	var bufZipped bytes.Buffer
@@ -184,4 +154,34 @@ func ZlibDecode(compressedData []byte) ([]byte, error) {
 	}
 
 	return decompressedData, nil
+}
+
+// Encode  结构体数据编码
+func Encode(data interface{}, zLib bool) []byte {
+	var bf bytes.Buffer
+	bv := GobEncode(data)
+	if zLib {
+		bv = ZlibEncode(bv)
+		bf.WriteByte(1)
+		bf.Write(bv)
+	}
+	return bf.Bytes()
+}
+
+// Decode  结构体数据解码
+func Decode(valueByte []byte, ret interface{}) error {
+	var dataByte []byte
+	if valueByte[0] == 1 {
+		if b, err := ZlibDecode(valueByte[1:]); err != nil {
+			return err
+		} else {
+			dataByte = b
+		}
+	} else {
+		dataByte = valueByte[1:]
+	}
+	if err := GobDecode(dataByte, ret); err != nil {
+		return nil
+	}
+	return nil
 }
