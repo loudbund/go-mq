@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/loudbund/go-mq/client"
 	protoMq "github.com/loudbund/go-mq/proto"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -49,6 +50,13 @@ func (s *server) PushData(ctx context.Context, req *protoMq.PushDataReq) (*proto
 
 // PullData 响应客户端拉取数据
 func (s *server) PullData(req *protoMq.PullDataReq, cliStr protoMq.Mq_PullDataServer) error {
+	// 权限校验
+	if client.PasswordEncode(CfgServer.Username) != req.Username ||
+		client.PasswordEncode(CfgServer.Password) != req.Password {
+		log.Error("拉取数据账号密码校验失败")
+		return fmt.Errorf("拉取数据账号密码校验失败")
+	}
+
 	// 构建频道映射
 	reqTopicMap := map[TTopicName]bool{}
 	for _, v := range req.Topics {
@@ -59,7 +67,7 @@ func (s *server) PullData(req *protoMq.PullDataReq, cliStr protoMq.Mq_PullDataSe
 	curBucket, curDataId := TBucketId(req.Position>>32), TDataId(req.Position)
 
 	// 循环取数据
-	for i := 0; i < CfgBoltDb.DataRowPerPull; i++ {
+	for i := 0; i < CfgServer.DataRowPerPull; i++ {
 		// 从 BoltDB 获取数据
 		topic, bucket, dataId, data := s.BoltDbControl.GetData(reqTopicMap, curBucket, curDataId)
 

@@ -6,7 +6,7 @@ import (
 	ini "gopkg.in/ini.v1"
 )
 
-var CfgBoltDb = struct {
+var CfgServer = struct {
 	// 监听ip
 	Host string `ini:"Host"`
 	// 监听端口
@@ -23,6 +23,10 @@ var CfgBoltDb = struct {
 
 	// 日志级别
 	LogLevel uint32 `ini:"LogLevel"`
+
+	// 拉取数据的用户名和密码
+	Username string `ini:"PullUsername"`
+	Password string `ini:"PullPassword"`
 }{}
 
 func init() {
@@ -34,14 +38,14 @@ func init() {
 	}
 
 	// 影射到结构体变量
-	err = c1.MapTo(&CfgBoltDb)
+	err = c1.MapTo(&CfgServer)
 	if err != nil {
 		log.Fatalf("Error parsing config file, %s\n", err)
 	}
 
 	// 数据目录还不存在，则创建一个
-	CfgBoltDb.DataDirName = "boltDb"
-	if !utils_v1.File().CheckFileExist(CfgBoltDb.DataDirName) {
-		utils_v1.File().MkdirAll(".", CfgBoltDb.DataDirName)
+	CfgServer.DataDirName = "boltDb"
+	if !utils_v1.File().CheckFileExist(CfgServer.DataDirName) {
+		utils_v1.File().MkdirAll(".", CfgServer.DataDirName)
 	}
 }

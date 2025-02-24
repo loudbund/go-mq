@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"compress/zlib"
 	"context"
+	"crypto/md5"
 	"encoding/gob"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	protoMq "github.com/loudbund/go-mq/proto"
@@ -186,4 +188,12 @@ func Decode(valueByte []byte, ret interface{}) error {
 		return nil
 	}
 	return nil
+}
+
+// PasswordEncode 密码加密
+func PasswordEncode(password string) string {
+	hash := md5.New()
+	hash.Write([]byte(password))
+	hashValue := hash.Sum(nil)
+	return hex.EncodeToString(hashValue)
 }

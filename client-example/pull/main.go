@@ -28,7 +28,12 @@ func main() {
 
 		// 2、发送数据拉取请求
 		for {
-			err = c.Pull(&protoMq.PullDataReq{Topics: topics, Position: curPosition},
+			err = c.Pull(&protoMq.PullDataReq{
+				Topics:   topics,
+				Position: curPosition,
+				Username: client.PasswordEncode("root"),
+				Password: client.PasswordEncode("test1234test"),
+			},
 				func(eData *protoMq.PullDataRes) bool {
 					// 处理数据
 					if curPosition != eData.Position {

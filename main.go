@@ -34,7 +34,7 @@ func init() {
 			return fmt.Sprintf("%s:%d", file[len(file)-1], f.Line), ""
 		},
 	})
-	log.SetLevel(log.Level(service.CfgBoltDb.LogLevel))
+	log.SetLevel(log.Level(service.CfgServer.LogLevel))
 
 	// 生成example配置文件
 	if !utils_v1.File().CheckFileExist("conf") {
@@ -72,7 +72,7 @@ func main() {
 // Exec 程序正式入口
 func Exec() {
 	// 启动grpc服务
-	go service.RunGrpcServer(service.CfgBoltDb.Host, service.CfgBoltDb.Port)
+	go service.RunGrpcServer(service.CfgServer.Host, service.CfgServer.Port)
 
 	// 启动pprof
 	//pprofAddr := "0.0.0.0:6060"

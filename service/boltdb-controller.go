@@ -89,7 +89,7 @@ func (c *Controller) reOpenDb() {
 	}
 
 	// 打开db
-	dbHandle, err := bolt.Open(CfgBoltDb.DataDirName+"/data.db", os.FileMode(os.O_RDWR), nil)
+	dbHandle, err := bolt.Open(CfgServer.DataDirName+"/data.db", os.FileMode(os.O_RDWR), nil)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -534,7 +534,7 @@ func (c *Controller) clearExpireBucket() {
 	defer boltDbLock.Unlock()
 
 	// 超过保留时间的bucket将被删除
-	expireTime := int(time.Now().Unix()) - CfgBoltDb.HourDataRetain*3600
+	expireTime := int(time.Now().Unix()) - CfgServer.HourDataRetain*3600
 
 	err := c.dbHandle.Update(func(tx *bolt.Tx) error {
 
