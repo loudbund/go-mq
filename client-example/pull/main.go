@@ -32,7 +32,17 @@ func main() {
 				func(eData *protoMq.PullDataRes) bool {
 					// 处理数据
 					if curPosition != eData.Position {
-						fmt.Println(string(eData.Topic), eData.Position, string(eData.Data))
+						fmt.Println(string(eData.Topic), eData.Position)
+						if len(eData.Topic) > 0 {
+							Data := &struct {
+								Name  string
+								Value string
+							}{}
+							if err := client.Decode(eData.Data, Data); err != nil {
+								log.Error(err)
+							}
+							fmt.Println(*Data)
+						}
 					}
 
 					// 游标更新

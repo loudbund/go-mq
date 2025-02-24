@@ -24,13 +24,13 @@ type DataEvent struct {
 	Data     []byte // 数据内容
 }
 
-// 客户端实例
-type client struct {
+// Client 客户端实例
+type Client struct {
 	mqClient protoMq.MqClient
 }
 
 // Pull 数据拉取
-func (c *client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.PullDataRes) bool) error {
+func (c *Client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.PullDataRes) bool) error {
 	stream, err := c.mqClient.PullData(context.Background(), reqData)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (c *client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.P
 }
 
 // Push 推送数据
-func (c *client) Push(dataPush *protoMq.PushDataReq) error {
+func (c *Client) Push(dataPush *protoMq.PushDataReq) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -77,8 +77,8 @@ func (c *client) Push(dataPush *protoMq.PushDataReq) error {
 }
 
 // NewClient 实例化客户端
-func NewClient(Ip string, Port int) (*client, error) {
-	c := &client{}
+func NewClient(Ip string, Port int) (*Client, error) {
+	c := &Client{}
 	log.Infof("连接服务 ip:%v, port:%v", Ip, Port)
 
 	dial, err := grpc.Dial(fmt.Sprintf("%s:%d", Ip, Port),
@@ -112,6 +112,36 @@ func GobDecode(bv []byte, ret interface{}) error {
 	b.Write(bv)
 	if err := gob.NewDecoder(&b).Decode(ret); err != nil {
 		return err
+	}
+	return nil
+}
+
+// Encode  结构体数据编码
+func Encode(da interface{}, zLib bool) []byte {
+	var bf bytes.Buffer
+	bv := GobEncode(da)
+	if zLib {
+		bv = ZlibEncode(bv)
+		bf.WriteByte(1)
+		bf.Write(bv)
+	}
+	return bf.Bytes()
+}
+
+// Decode  结构体数据解码
+func Decode(bv []byte, ret interface{}) error {
+	var D []byte
+	if bv[0] == 1 {
+		if d, err := ZlibDecode(bv[1:]); err != nil {
+			return err
+		} else {
+			D = d
+		}
+	} else {
+		D = bv
+	}
+	if err := GobDecode(D, ret); err != nil {
+		return nil
 	}
 	return nil
 }

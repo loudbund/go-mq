@@ -6,7 +6,6 @@ import (
 	protoMq "github.com/loudbund/go-mq/proto"
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
-	"math/rand"
 	"time"
 )
 
@@ -21,8 +20,12 @@ func main() {
 		log.Panic(err)
 	} else {
 		D := &protoMq.PushDataReq{
-			Topic: [][]byte{[]byte("user"), []byte("homework")}[rand.Intn(2)],
-			Data:  []byte(`{"hello":"` + utils_v1.Time().DateTime() + `"}`),
+			//Topic: [][]byte{[]byte("user"), []byte("homework")}[rand.Intn(2)],
+			Topic: []byte("user"),
+			Data: client.Encode(struct {
+				Name  string
+				Value string
+			}{Name: "hello", Value: utils_v1.Time().DateTime()}, true),
 		}
 		fmt.Println(D)
 
