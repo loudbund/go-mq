@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	mqV1 "github.com/loudbund/go-mq/api/v1"
 	"github.com/loudbund/go-mq/client"
-	protoMq "github.com/loudbund/go-mq/proto"
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -19,7 +19,7 @@ func main() {
 	if c, err := client.NewClient("127.0.0.1", 8090); err != nil {
 		log.Panic(err)
 	} else {
-		D := &protoMq.PushDataReq{
+		D := &mqV1.PushDataReq{
 			//Topic: [][]byte{[]byte("user"), []byte("homework")}[rand.Intn(2)],
 			Topic: []byte("user"),
 			Data: client.Encode(struct {

@@ -1,9 +1,11 @@
-package service
+package config
 
 import (
+	"embed"
+	"encoding/json"
 	"github.com/loudbund/go-utils/utils_v1"
 	log "github.com/sirupsen/logrus"
-	ini "gopkg.in/ini.v1"
+	"gopkg.in/ini.v1"
 )
 
 var CfgServer = struct {
@@ -29,15 +31,28 @@ var CfgServer = struct {
 	Password string `ini:"PullPassword"`
 }{}
 
+//go:embed embed.app.conf
+var fileList embed.FS
+
 func init() {
-	// 初始化CfgBoltDb变量配置
-	// 加载配置文件
-	c1, err := ini.Load("conf/app.conf")
+	// 生成目录
+	if !utils_v1.File().CheckFileExist("conf") {
+		_ = utils_v1.File().MkdirAll(".", "conf")
+	}
+	if !utils_v1.File().CheckFileExist("logs") {
+		_ = utils_v1.File().MkdirAll(".", "logs")
+	}
+
+	// 生成example配置文件
+	if data, err := fileList.ReadFile("embed.app.conf"); err == nil {
+		_ = utils_v1.File().WriteAll("conf/example.app.conf", data)
+	}
+
+	// 加载配置文件、并映射到结构体变量
+	c1, err := ini.Load("conf/config.app.conf")
 	if err != nil {
 		log.Fatalf("Error reading config file, %s\n", err)
 	}
-
-	// 影射到结构体变量
 	err = c1.MapTo(&CfgServer)
 	if err != nil {
 		log.Fatalf("Error parsing config file, %s\n", err)
@@ -46,6 +61,13 @@ func init() {
 	// 数据目录还不存在，则创建一个
 	CfgServer.DataDirName = "boltDb"
 	if !utils_v1.File().CheckFileExist(CfgServer.DataDirName) {
-		utils_v1.File().MkdirAll(".", CfgServer.DataDirName)
+		_ = utils_v1.File().MkdirAll(".", CfgServer.DataDirName)
 	}
+
+	log.Infof("配置参数:%v", jsonMarshal(CfgServer))
+}
+
+func jsonMarshal(v interface{}) string {
+	cf, _ := json.Marshal(v)
+	return string(cf)
 }

@@ -9,7 +9,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	protoMq "github.com/loudbund/go-mq/proto"
+	mqV1 "github.com/loudbund/go-mq/api/v1"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"io"
@@ -28,11 +28,11 @@ type DataEvent struct {
 
 // Client 客户端实例
 type Client struct {
-	mqClient protoMq.MqClient
+	mqClient mqV1.MqClient
 }
 
 // Pull 数据拉取
-func (c *Client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.PullDataRes) bool) error {
+func (c *Client) Pull(reqData *mqV1.PullDataReq, callBack func(res *mqV1.PullDataRes) bool) error {
 	stream, err := c.mqClient.PullData(context.Background(), reqData)
 
 	if err != nil {
@@ -63,7 +63,7 @@ func (c *Client) Pull(reqData *protoMq.PullDataReq, callBack func(res *protoMq.P
 }
 
 // Push 推送数据
-func (c *Client) Push(dataPush *protoMq.PushDataReq) error {
+func (c *Client) Push(dataPush *mqV1.PushDataReq) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -94,7 +94,7 @@ func NewClient(Ip string, Port int) (*Client, error) {
 		log.Error(err)
 		return nil, err
 	}
-	c.mqClient = protoMq.NewMqClient(dial)
+	c.mqClient = mqV1.NewMqClient(dial)
 
 	return c, nil
 }

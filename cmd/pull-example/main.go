@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	mqV1 "github.com/loudbund/go-mq/api/v1"
 	"github.com/loudbund/go-mq/client"
-	protoMq "github.com/loudbund/go-mq/proto"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -28,13 +28,13 @@ func main() {
 
 		// 2、发送数据拉取请求
 		for {
-			err = c.Pull(&protoMq.PullDataReq{
+			err = c.Pull(&mqV1.PullDataReq{
 				Topics:   topics,
 				Position: curPosition,
 				Username: client.PasswordEncode("root"),
 				Password: client.PasswordEncode("test1234test"),
 			},
-				func(eData *protoMq.PullDataRes) bool {
+				func(eData *mqV1.PullDataRes) bool {
 					// 处理数据
 					if curPosition != eData.Position {
 						fmt.Println(string(eData.Topic), eData.Position)

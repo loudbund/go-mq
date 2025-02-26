@@ -6,7 +6,7 @@
 // - protoc             v3.5.1
 // source: mq.proto
 
-package protoMq
+package mqV1
 
 import (
 	context "context"

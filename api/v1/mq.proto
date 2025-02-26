@@ -1,7 +1,7 @@
 //stream.proto
 syntax = "proto3" ;
 
-option go_package = "./;protoMq" ;
+option go_package = "./;mqV1" ;
 
 
 // 推送数据参数

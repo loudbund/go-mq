@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	mqV1 "github.com/loudbund/go-mq/api/v1"
 	"github.com/loudbund/go-mq/client"
-	protoMq "github.com/loudbund/go-mq/proto"
+	"github.com/loudbund/go-mq/config"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -13,7 +14,7 @@ import (
 
 type server struct {
 	BoltDbControl *Controller
-	protoMq.UnimplementedMqServer
+	mqV1.UnimplementedMqServer
 }
 
 // RunGrpcServer 启动服务端
@@ -28,7 +29,7 @@ func RunGrpcServer(Ip string, Port int) {
 	s := grpc.NewServer()
 
 	//注册事件
-	protoMq.RegisterMqServer(s, Server)
+	mqV1.RegisterMqServer(s, Server)
 
 	log.Info(fmt.Sprintf("listen tcp %d", Port))
 	listen, _ := net.Listen("tcp", fmt.Sprintf("%s:%d", Ip, +Port))
@@ -36,23 +37,23 @@ func RunGrpcServer(Ip string, Port int) {
 }
 
 // PushData 接收客户端写入的数据
-func (s *server) PushData(ctx context.Context, req *protoMq.PushDataReq) (*protoMq.PushDataRes, error) {
+func (s *server) PushData(ctx context.Context, req *mqV1.PushDataReq) (*mqV1.PushDataRes, error) {
 
 	err := s.BoltDbControl.WriteData(TTopicName(req.Topic), req.Data)
 
 	if err != nil {
 		log.Error(err)
-		return &protoMq.PushDataRes{ErrNum: 1, Msg: err.Error()}, nil
+		return &mqV1.PushDataRes{ErrNum: 1, Msg: err.Error()}, nil
 	}
 
-	return &protoMq.PushDataRes{ErrNum: 0, Msg: ""}, nil
+	return &mqV1.PushDataRes{ErrNum: 0, Msg: ""}, nil
 }
 
 // PullData 响应客户端拉取数据
-func (s *server) PullData(req *protoMq.PullDataReq, cliStr protoMq.Mq_PullDataServer) error {
+func (s *server) PullData(req *mqV1.PullDataReq, cliStr mqV1.Mq_PullDataServer) error {
 	// 权限校验
-	if client.PasswordEncode(CfgServer.Username) != req.Username ||
-		client.PasswordEncode(CfgServer.Password) != req.Password {
+	if client.PasswordEncode(config.CfgServer.Username) != req.Username ||
+		client.PasswordEncode(config.CfgServer.Password) != req.Password {
 		log.Error("拉取数据账号密码校验失败")
 		return fmt.Errorf("拉取数据账号密码校验失败")
 	}
@@ -67,12 +68,12 @@ func (s *server) PullData(req *protoMq.PullDataReq, cliStr protoMq.Mq_PullDataSe
 	curBucket, curDataId := TBucketId(req.Position>>32), TDataId(req.Position)
 
 	// 循环取数据
-	for i := 0; i < CfgServer.DataRowPerPull; i++ {
+	for i := 0; i < config.CfgServer.DataRowPerPull; i++ {
 		// 从 BoltDB 获取数据
 		topic, bucket, dataId, data := s.BoltDbControl.GetData(reqTopicMap, curBucket, curDataId)
 
 		// 发送数据给客户端
-		resp := &protoMq.PullDataRes{
+		resp := &mqV1.PullDataRes{
 			ErrNum:   0,
 			Position: int64(bucket)<<32 | int64(dataId),
 			Topic:    []byte(topic),
