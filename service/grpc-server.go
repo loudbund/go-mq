@@ -38,6 +38,11 @@ func RunGrpcServer(Ip string, Port int) {
 
 // PushData 接收客户端写入的数据
 func (s *server) PushData(ctx context.Context, req *mqV1.PushDataReq) (*mqV1.PushDataRes, error) {
+	// 版本校验
+	if client.VersionClient != req.VersionClient {
+		log.Error("客户端版本不匹配")
+		return &mqV1.PushDataRes{ErrNum: 2, Msg: "客户端版本不匹配"}, nil
+	}
 
 	err := s.BoltDbControl.WriteData(TTopicName(req.Topic), req.Data)
 
@@ -51,6 +56,11 @@ func (s *server) PushData(ctx context.Context, req *mqV1.PushDataReq) (*mqV1.Pus
 
 // PullData 响应客户端拉取数据
 func (s *server) PullData(req *mqV1.PullDataReq, cliStr mqV1.Mq_PullDataServer) error {
+	// 版本校验
+	if client.VersionClient != req.VersionClient {
+		log.Error("客户端版本不匹配")
+		return fmt.Errorf("客户端版本不匹配")
+	}
 	// 权限校验
 	if client.PasswordEncode(config.CfgServer.Username) != req.Username ||
 		client.PasswordEncode(config.CfgServer.Password) != req.Password {

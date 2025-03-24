@@ -16,6 +16,9 @@ import (
 	"time"
 )
 
+// VersionClient 版本号
+var VersionClient = "1.0.0"
+
 func init() {
 }
 

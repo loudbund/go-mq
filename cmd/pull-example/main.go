@@ -29,10 +29,11 @@ func main() {
 		// 2、发送数据拉取请求
 		for {
 			err = c.Pull(&mqV1.PullDataReq{
-				Topics:   topics,
-				Position: curPosition,
-				Username: client.PasswordEncode("root"),
-				Password: client.PasswordEncode("test1234test"),
+				VersionClient: client.VersionClient,
+				Topics:        topics,
+				Position:      curPosition,
+				Username:      client.PasswordEncode("root"),
+				Password:      client.PasswordEncode("test1234test"),
 			},
 				func(eData *mqV1.PullDataRes) bool {
 					// 处理数据

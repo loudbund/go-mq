@@ -20,6 +20,7 @@ func main() {
 		log.Panic(err)
 	} else {
 		D := &mqV1.PushDataReq{
+			VersionClient: client.VersionClient,
 			//Topic: [][]byte{[]byte("user"), []byte("homework")}[rand.Intn(2)],
 			Topic: []byte("user"),
 			Data: client.Encode(struct {

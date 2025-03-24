@@ -6,8 +6,9 @@ option go_package = "./;mqV1" ;
 
 // 推送数据参数
 message PushDataReq{
-  bytes  Topic             = 1 ; // 频道
-  bytes  Data              = 2 ; // 数据内容
+  string VersionClient     = 1 ; // 客户端版本号
+  bytes  Topic             = 2 ; // 频道
+  bytes  Data              = 3 ; // 数据内容
 }
 
 // 推送数据返回
@@ -18,10 +19,11 @@ message PushDataRes{
 
 // 拉取数据参数
 message PullDataReq{
-  repeated bytes  Topics   = 1 ; // 频道: 支持多个
-  int64           Position = 2 ; // 已读取到的位置
-  string          Username = 3 ; // 用户名
-  string          Password = 4 ; // 密码
+  string VersionClient     = 1 ; // 客户端版本号
+  repeated bytes  Topics   = 2 ; // 频道: 支持多个
+  int64           Position = 3 ; // 已读取到的位置
+  string          Username = 4 ; // 用户名
+  string          Password = 5 ; // 密码
 }
 
 // 拉取数据返回【一次只返回一个频道数据，切不会跨bucket】

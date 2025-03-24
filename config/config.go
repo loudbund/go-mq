@@ -14,6 +14,9 @@ var CfgServer = struct {
 	// 监听端口
 	Port int `ini:"Port"`
 
+	// pprof监听端口, 0表示不监听
+	PprofPort int `ini:"PprofPort"`
+
 	// 数据单次pull行数
 	DataRowPerPull int `ini:"DataRowPerPull"`
 

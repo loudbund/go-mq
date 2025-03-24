@@ -7,6 +7,7 @@ import (
 	"github.com/loudbund/go-mq/service"
 	"github.com/loudbund/go-progress/progress_v1"
 	log "github.com/sirupsen/logrus"
+	"net/http"
 	_ "net/http/pprof"
 	"runtime"
 	"strings"
@@ -59,13 +60,15 @@ func Exec() {
 	go service.RunGrpcServer(config.CfgServer.Host, config.CfgServer.Port)
 
 	// 启动pprof
-	//pprofAddr := "0.0.0.0:6060"
-	//go func(addr string) {
-	//	if err := http.ListenAndServe(addr, nil); err != http.ErrServerClosed {
-	//		log.Fatalf("Pprof server ListenAndServe: %v", err)
-	//	}
-	//}(pprofAddr)
-	//log.Infof("HTTP Pprof start at %s", pprofAddr)
+	if config.CfgServer.PprofPort > 0 {
+		pprofAddr := fmt.Sprintf("0.0.0.0:%d", config.CfgServer.PprofPort)
+		go func(addr string) {
+			if err := http.ListenAndServe(addr, nil); err != http.ErrServerClosed {
+				log.Fatalf("Pprof server ListenAndServe: %v", err)
+			}
+		}(pprofAddr)
+		log.Infof("HTTP Pprof start at %s", pprofAddr)
+	}
 
 	select {}
 }
