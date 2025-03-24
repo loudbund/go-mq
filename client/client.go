@@ -38,6 +38,8 @@ type Client struct {
 func (c *Client) Pull(reqData *mqV1.PullDataReq, callBack func(res *mqV1.PullDataRes) bool) error {
 	stream, err := c.mqClient.PullData(context.Background(), reqData)
 
+	defer func() { _ = stream.CloseSend() }()
+
 	if err != nil {
 		log.Error(err)
 		return err

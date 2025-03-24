@@ -83,13 +83,13 @@ func (s *server) PullData(req *mqV1.PullDataReq, cliStr mqV1.Mq_PullDataServer) 
 		topic, bucket, dataId, data := s.BoltDbControl.GetData(reqTopicMap, curBucket, curDataId)
 
 		// 发送数据给客户端
-		resp := &mqV1.PullDataRes{
+		resp := mqV1.PullDataRes{
 			ErrNum:   0,
 			Position: int64(bucket)<<32 | int64(dataId),
 			Topic:    []byte(topic),
 			Data:     data,
 		}
-		if err := cliStr.Send(resp); err != nil {
+		if err := cliStr.Send(&resp); err != nil {
 			log.Errorf("发送数据出错：%s", err.Error())
 			return err
 		}
