@@ -545,9 +545,11 @@ func (c *Controller) clearExpireBucket() {
 
 				if Byte2int32(name) < int32(expireTime) {
 
+					// 删除bucket，同时删除缓存的bucket信息
 					if err := tx.DeleteBucket(name); err != nil {
 						log.Panic(err)
 					}
+					delete(c.running.BucketCache, TBucketId(Byte2int32(name)))
 				}
 			}
 			return nil
