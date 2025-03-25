@@ -87,7 +87,7 @@ func (s *server) PullData(req *mqV1.PullDataReq, cliStr mqV1.Mq_PullDataServer) 
 			ErrNum:   0,
 			Position: int64(bucket)<<32 | int64(dataId),
 			Topic:    []byte(topic),
-			Data:     data,
+			Data:     []byte(data),
 		}
 		if err := cliStr.Send(&resp); err != nil {
 			log.Errorf("发送数据出错：%s", err.Error())

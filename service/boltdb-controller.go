@@ -127,7 +127,7 @@ func (c *Controller) WriteData(topicName TTopicName, data []byte) error {
 
 // GetData 获取一组数据
 func (c *Controller) GetData(reqTopicMaps map[TTopicName]bool, curBucket TBucketId, curDataId TDataId) (
-	TTopicName, TBucketId, TDataId, []byte,
+	TTopicName, TBucketId, TDataId, string,
 ) {
 	boltDbLock.Lock()
 	defer boltDbLock.Unlock()
@@ -139,14 +139,14 @@ func (c *Controller) GetData(reqTopicMaps map[TTopicName]bool, curBucket TBucket
 	for {
 		// 1、异常了，还没有新数据
 		if curBucket > c.running.Bucket {
-			return "", c.running.Bucket, c.running.DataId, nil
+			return "", c.running.Bucket, c.running.DataId, ""
 		}
 
 		// 2、指针bucket为写入中的bucket:  则从正在写入中的bucket里取
 		if curBucket == c.running.Bucket {
 			// 异常了，还没有新数据
 			if curDataId >= c.running.DataId {
-				return "", c.running.Bucket, c.running.DataId, nil
+				return "", c.running.Bucket, c.running.DataId, ""
 			}
 
 			// 取出一条数据
@@ -321,7 +321,7 @@ func (c *Controller) getDbMaxDataIdFromBucket(bucket TBucketId) TDataId {
 }
 
 // 从db库里取数据
-func (c *Controller) getDbDataFromBucket(topicMaps map[TTopicName]bool, bucket TBucketId, dataId TDataId) (TTopicName, []byte) {
+func (c *Controller) getDbDataFromBucket(topicMaps map[TTopicName]bool, bucket TBucketId, dataId TDataId) (TTopicName, string) {
 	// 从boltDb里读取
 	detail, err := c.readKeyData(Int322byte(int32(bucket)), Int322byte(int32(dataId)))
 	if err != nil {
@@ -333,9 +333,9 @@ func (c *Controller) getDbDataFromBucket(topicMaps map[TTopicName]bool, bucket T
 	topicName := c.getTopicFromId(topicId)
 
 	if _, ok := topicMaps[topicName]; ok {
-		return topicName, detail[4:]
+		return topicName, string(detail[4:])
 	} else {
-		return "", nil
+		return "", ""
 	}
 }
 
