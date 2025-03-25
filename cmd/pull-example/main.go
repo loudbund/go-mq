@@ -28,7 +28,7 @@ func main() {
 
 		// 2、发送数据拉取请求
 		for {
-			err = c.Pull(&mqV1.PullDataReq{
+			n, err := c.Pull(&mqV1.PullDataReq{
 				VersionClient: client.VersionClient,
 				Topics:        topics,
 				Position:      curPosition,
@@ -57,12 +57,15 @@ func main() {
 					return true
 				},
 			)
+
 			if err != nil {
 				log.Panic(err)
 			}
 
-			fmt.Println("waiting 1s")
-			time.Sleep(time.Second * 1)
+			if n == 0 {
+				fmt.Println("waiting 1s")
+				time.Sleep(time.Second * 1)
+			}
 		}
 
 	}

@@ -35,17 +35,19 @@ type Client struct {
 }
 
 // Pull 数据拉取
-func (c *Client) Pull(reqData *mqV1.PullDataReq, callBack func(res *mqV1.PullDataRes) bool) error {
+func (c *Client) Pull(reqData *mqV1.PullDataReq, callBack func(res *mqV1.PullDataRes) bool) (int, error) {
 	stream, err := c.mqClient.PullData(context.Background(), reqData)
 
 	defer func() { _ = stream.CloseSend() }()
 
 	if err != nil {
 		log.Error(err)
-		return err
+		return 0, err
 	}
 
 	// 循环获取，仅当服务器结束，回调返回了false，才会结束
+	n := 0
+
 	for {
 		// 取数据
 		res, err := stream.Recv()
@@ -53,15 +55,20 @@ func (c *Client) Pull(reqData *mqV1.PullDataReq, callBack func(res *mqV1.PullDat
 
 			if err.Error() != "EOF" {
 				log.Error(err)
-				return err
+				return n, err
 			}
 
-			return nil
+			return n, nil
+		}
+
+		// 有topic值时才纳入计数统计
+		if len(res.Topic) > 0 {
+			n++
 		}
 
 		// 回调
 		if !callBack(res) {
-			return nil
+			return -1, nil
 		}
 
 	}
