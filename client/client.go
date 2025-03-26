@@ -38,12 +38,12 @@ type Client struct {
 func (c *Client) Pull(reqData *mqV1.PullDataReq, callBack func(res *mqV1.PullDataRes) bool) (int, error) {
 	stream, err := c.mqClient.PullData(context.Background(), reqData)
 
-	defer func() { _ = stream.CloseSend() }()
-
 	if err != nil {
 		log.Error(err)
 		return 0, err
 	}
+
+	defer func() { _ = stream.CloseSend() }()
 
 	// 循环获取，仅当服务器结束，回调返回了false，才会结束
 	n := 0
